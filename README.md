@@ -55,7 +55,7 @@ The [Discussion](https://github.com/JinYSun/DeepDonor/tree/main/discussion) fold
 
 ## Screen
 
-![screen](H:\library\NFA-BERT\screen.jpg)
+![screen](screen.jpg)
 
 ## Contact
 
