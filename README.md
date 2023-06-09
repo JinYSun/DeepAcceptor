@@ -2,7 +2,7 @@
 
 ### **Computational design and screening of acceptor materials for organic solar cells**
 
-![workflow](H:\library\NFA-BERT\workflow.jpg)
+![workflow](workflow.jpg)
 
 ## Motivation
 
