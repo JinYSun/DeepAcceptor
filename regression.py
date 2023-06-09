@@ -1,40 +1,43 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+
 import tensorflow as tf
+
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from tensorflow.keras.constraints import max_norm
 import pandas as pd
 import numpy as np
 
-from dataset import Graph_Regression_Dataset
+from dataset import Graph_Regression_Dataset, Graph_Regression
 from sklearn.metrics import r2_score,roc_auc_score
 
 import os
 from model import  PredictModel,BertModel
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+
 
 
 
 def main(seed):
     # tasks = ['caco2', 'logD', 'logS', 'PPB', 'tox']
-    # os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+    #os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     keras.backend.clear_session()
-    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     small = {'name': 'Small', 'num_layers': 3, 'num_heads': 4, 'd_model': 128, 'path': 'small_weights','addH':True}
-    medium = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights3','addH':True}
-    medium2 = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights2',
+    medium = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights2','addH':True}
+    medium3 = {'name': 'Medium', 'num_layers': 8, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights2',
                'addH': True}
     large = {'name': 'Large', 'num_layers': 12, 'num_heads': 12, 'd_model': 576, 'path': 'large_weights','addH':True}
     medium_without_H = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'weights_without_H','addH':False}
     medium_without_pretrain = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256,'path': 'medium_without_pretraining_weights','addH':True}
 
-    arch = medium ## small 3 4 128   medium: 6 6  256     large:  12 8 516
+    arch = medium3## small 3 4 128   medium: 6 6  256     large:  12 8 516
 
     pretraining = True
     pretraining_str = 'pretraining' if pretraining else ''
 
-    trained_epoch = 30
+    trained_epoch = 80
     task = 'data'
     print(task)
     seed = seed
@@ -49,9 +52,9 @@ def main(seed):
     dropout_rate = 0.1
 
     tf.random.set_seed(seed=seed)
-    graph_dataset = Graph_Regression_Dataset('data/reg/{}.csv', smiles_field='SMILES',
-                                                           label_field='PCE',addH=addH)
-        
+    graph_dataset = Graph_Regression('data/reg/{}.csv', addH=addH)
+    # graph_dataset = Graph_Regression_Dataset('data/reg/{}.csv', smiles_field='SMILES',
+    #                                                         label_field='PCE',addH=addH)        
     train_dataset, test_dataset,val_dataset = graph_dataset.get_data()
     
     #value_range = graph_dataset.value_range()
@@ -97,7 +100,7 @@ def main(seed):
     mse=100
     r2 = -0.5
     stopping_monitor = 0
-    for epoch in range(60):
+    for epoch in range(200):
         mse_object = tf.keras.metrics.MeanSquaredError()
         for x,adjoin_matrix,y in train_dataset:
             with tf.GradientTape() as tape:
@@ -140,26 +143,26 @@ def main(seed):
         print('best r2: {:.4f}'.format(r2))
         if stopping_monitor>0:
             print('stopping_monitor:',stopping_monitor)
-        if stopping_monitor>30:
+        if stopping_monitor>20:
             break
-
-    y_true = []
-    y_preds = []
-    model.load_weights('regression_weights/{}.h5'.format(task, seed))
-    for x, adjoin_matrix, y in test_dataset:
-        seq = tf.cast(tf.math.equal(x, 0), tf.float32)
-        mask = seq[:, tf.newaxis, tf.newaxis, :]
-        preds = model(x, mask=mask, adjoin_matrix=adjoin_matrix, training=False)
-        y_true.append(y.numpy())
-        y_preds.append(preds.numpy())
-    y_true = np.concatenate(y_true, axis=0).reshape(-1)
+    prediction_test = prediction_val
+    # y_true = []
+    # y_preds = []
+    # model.load_weights('regression_weights/{}.h5'.format(task, seed))
+    # for x, adjoin_matrix, y in test_dataset:
+    #     seq = tf.cast(tf.math.equal(x, 0), tf.float32)
+    #     mask = seq[:, tf.newaxis, tf.newaxis, :]
+    #     preds = model(x, mask=mask, adjoin_matrix=adjoin_matrix, training=False)
+    #     y_true.append(y.numpy())
+    #     y_preds.append(preds.numpy())
+    # y_true = np.concatenate(y_true, axis=0).reshape(-1)
    
-    y_preds = np.concatenate(y_preds, axis=0).reshape(-1)
+    # y_preds = np.concatenate(y_preds, axis=0).reshape(-1)
 
-    test_r2 = r2_score(y_true, y_preds)
-    test_mse = keras.metrics.mse(y_true.reshape(-1), y_preds.reshape(-1)).numpy() * (value_range**2)
-    print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
-    prediction_test=np.vstack((y_true,y_preds))
+    # test_r2 = r2_score(y_true, y_preds)
+    # test_mse = keras.metrics.mse(y_true.reshape(-1), y_preds.reshape(-1)).numpy() * (value_range**2)
+    # print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
+    # prediction_test=np.vstack((y_true,y_preds))
 
     return r2,prediction_val,prediction_test
 def plot_confusion_matrix(cm, savename, title='Confusion Matrix'):
