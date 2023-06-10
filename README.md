@@ -12,15 +12,15 @@ It is a time-consuming and costly process to developing affordable and high-perf
 
 We recommend to use [conda](https://conda.io/docs/user-guide/install/download.html) and [pip](https://pypi.org/project/pip/).
 
-tensorflow==2.3.0, 
+[tensorflow](www.tensorflow.org)==2.3.0, 
 
 [rdkit](https://rdkit.org/)==2020.03.2, 
 
-numpy==1.18.5, 
+[numpy](https://numpy.org/)==1.18.5, 
 
-pandas==1.1.0, 
+[pandas](http://pandas.pydata.org/)==1.1.0, 
 
-openbabel==2.3.1
+[openbabel](http://openbabel.org/wiki/Main_Page)==2.3.1
 
 **By using the *environment.yml* file, it will install all the required packages.**
 
