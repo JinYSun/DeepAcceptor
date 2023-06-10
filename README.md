@@ -2,7 +2,7 @@
 
 ### **Computational design and screening of acceptor materials for organic solar cells**
 
-![workflow](H:\library\NFA-BERT\workflow.jpg)
+![workflow](workflow.jpg)
 
 ## Motivation
 
@@ -55,7 +55,7 @@ The [Discussion](https://github.com/JinYSun/DeepDonor/tree/main/discussion) fold
 
 ## Screen
 
-![screen](H:\library\NFA-BERT\screen.jpg)
+![screen](screen.jpg)
 
 ## Contact
 
