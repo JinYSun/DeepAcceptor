@@ -47,7 +47,7 @@ conda activate deepacceptor
     contain the code to convert molecules to graphs
     
  --data:
-    pre-process data used for pretraining and fine-tuning 
+     dataset used for pretraining and fine-tuning 
 
 ## <u>Discussion</u> 
 
