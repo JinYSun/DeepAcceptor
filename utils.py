@@ -597,7 +597,7 @@ def mol_to_graph_data(mol):
     for name in bond_id_names:
         data[name] = np.array(data[name], 'int64')
     data['edges'] = np.array(data['edges'], 'int64')
-    data['atoms'] = (atoms_list)
+    data['atoms'] = np.array(atoms_list)
     ### morgan fingerprint
     #data['morgan_fp'] = np.array(CompoundKit.get_morgan_fingerprint(mol), 'int64')
     # data['morgan2048_fp'] = np.array(CompoundKit.get_morgan2048_fingerprint(mol), 'int64')
@@ -647,16 +647,50 @@ def gen_adj(shape,edges,length):
     adj=edges
     e = shape
     ones = np.eye(e)
+
     #for i in range(e):
-    # for i in range (len(length)):
-    #     if adj[i,0] != adj[i,1]:
-    #         ones[adj[i,0],adj[i,1]]=float(length[i])
     for i in range (len(length)):
         if adj[i,0] != adj[i,1]:
-            ones[adj[i,0],adj[i,1]]=(float(length[i]))
-                                 
+            ones[adj[i,0],adj[i,1]]=format(float(length[i] ), '.3f')
+                   
     return ones
 
 
 if __name__ == "__main__":
-    B=mol_to_geognn_graph_data_MMFF3d('CCCCOc1ccc(/C=C(\C#N)C(=O)Nc2ccc(S(=O)(=O)[N-]c3cc(C)on3)cc2)cc1')      
+    import pandas as pd 
+    from tqdm import tqdm
+    f = pd.read_csv (r"train.csv")
+    re = []
+    pce = f['PCE']
+    for ind,smile in enumerate ( f.iloc[:,1]):
+        print(ind)
+        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+        np.save('data/reg/train/adj'+str(ind)+'.npy',np.array(adj))
+        re.append([atom,'data/reg/train/adj'+str(ind)+'.npy',pce[ind] ])
+    r = pd.DataFrame(re)
+    r.to_csv('data/reg/train/train.csv')
+    re = []
+
+    f = pd.read_csv(r'test.csv')
+    re = []
+    pce = f['PCE']
+   
+    for ind,smile in enumerate ( f.iloc[:,1]):
+        print(ind)
+        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+        np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
+        re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
+    r = pd.DataFrame(re)
+    r.to_csv('data/reg/test/test.csv')
+    
+    f = pd.read_csv(r'val.csv')
+    re = []
+    pce = f['PCE']        
+   
+    for ind,smile in enumerate ( f.iloc[:,1]):
+        print(ind)
+        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+        np.save('data/reg/val/adj'+str(ind)+'.npy',np.array(adj))
+        re.append([atom,'data/reg/val/adj'+str(ind)+'.npy',pce[ind] ])
+    r = pd.DataFrame(re)
+    r.to_csv('data/reg/val/val.csv')

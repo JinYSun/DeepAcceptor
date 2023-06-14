@@ -1,0 +1,164 @@
+#! /bin/bash
+#######################################################################
+# Begin WQ prologue section.
+#######################################################################
+#PBS -l nodes=3:ppn=20
+#PBS -l walltime=72:00:00
+#PBS -q workq
+#PBS -N edud_as
+#PBS -o /work/jaydy/working/
+
+# Things that should be customized, carefully of course.
+
+# Set the desired number of workers per node. This is basically the
+# number of cores available on a node divided by the number of
+# processes/threads that will be used per task (i.e. 4 MPI processes
+# per task on a 16-core node would allow for 4 workers). Let's assume
+# 2 threads per task, so:
+
+WPN=16
+
+# Set the working directory:
+export WORKDIR=/work/jaydy/working
+
+if [ ! -f ${WORKDIR}/wq.py ]; then
+    cp /home/${USER}/Workspace/Bitbucket/wq/wq.py ${WORKDIR}
+fi
+
+FILES=${WORKDIR}/all_edud_smi_paths.txt
+TASK=${WORKDIR}/edud.py
+
+
+START=1
+
+
+########################################################################
+# End WQ prologue section.
+#
+# Begin WQ epilogue section.
+# What follows is the main WQ script.  It should be considered powerful
+# magic. Dabbled with at your own peril.
+########################################################################
+
+# Drop into the working directory after making sure it exists.
+
+if [ ! -d ${WORKDIR} ] ; then
+    echo "WQ.PBS Error: WORKDIR = \"${WORKDIR}\" does not exist!"
+    exit 1
+fi
+
+cd ${WORKDIR}
+
+# Only the mother superior has PBS_JOBID defined, so we will be
+# passing it to the other nodes as $2. Use this fact to decide if
+# we are running on the mother superior or a compute node:
+
+if [ "${2}x" = "x" ] ; then
+
+    # Must be running on the mother superior. Do some basic sanity
+    # checking just to be safe.
+
+    if [ ! -r ${FILES} ] ; then
+        echo "WQ.PBS Error: FILES = \"${FILES}\" does not exist or can't be read!"
+        exit 1
+    fi
+
+    if [ $(wc -l ${FILES} | cut -d ' ' -f 1) -lt 1 ] ; then
+        echo "WQ.PBS Warning: FILES = \"${FILES}\" is empty. No work to do!"
+        exit 0
+    fi
+
+    if [ ! -x ${TASK} ] ; then
+        echo "WQ.PBS Error: TASK = \"${TASK}\" does not exist or isn't executable!"
+        exit 1
+    fi
+
+    if [ ${START} -lt 1 ] ; then
+        echo "WQ.PBS Error: START can't be less than 1! Quiting!"
+        exit 1
+    fi
+
+    # Remember our host name.
+
+    MS=`uname -n`
+
+    # Use a bit of magic to strip off the trailing host name and
+    # leave only the job number from PBS_JOBID:
+
+    JOBNUM=${PBS_JOBID%.*}
+    HOSTLIST=${WORKDIR}/hostlist.${JOBNUM}
+
+    # We want the mother superior host name first. So, take the host
+    # list provided, sort it into a unique list of names, with MS first.
+    # This assures it's node ID, or position in the hostlist, is 1.
+
+    echo ${MS} > ${HOSTLIST}
+    grep -v ${MS} ${PBS_NODEFILE} | uniq | sort >> ${HOSTLIST}
+
+    # Compute the number of nodes assigned.
+
+    export NODES=`wc -l ${HOSTLIST} |gawk '//{print $1}'`
+
+    # Make a local copy of the PBS script since only the mother superior
+    # can see it at job start.
+
+    JOBFILE=${WORKDIR}/pbs.${JOBNUM}
+    cp $0 $JOBFILE
+    chmod a+x ${JOBFILE}
+
+    # Mother superior must start up the dispatcher, so:
+
+    python ${WORKDIR}/wq.py --start $START --dispatcher ${TASK} \
+        --inputs ${FILES} --allworkers $(( $WPN * $NODES )) &
+
+    # Give it a chance to spin up since the dispatcher must be ready
+    # to accept connections from the workers upon request.
+
+    sleep 5
+
+    # Ready to start the script on all compute nodes. This will fire up
+    # workers. We'll pass PBS_WALLTIME and the job number as arguments.
+    # They'll connect to the dispatcher and start work immediately.
+
+    for H in `cat ${HOSTLIST}` ; do
+        if [ ${H} != ${MS} ] ; then
+            ssh -n ${H} ${JOBFILE} ${PBS_WALLTIME} ${JOBNUM} &
+        fi
+    done
+
+    # Finally, mother superior can also start workers:
+
+    python ${WORKDIR}/wq.py --workers ${WPN} --mothersuperior ${MS} \
+        --time ${PBS_WALLTIME}
+
+    # Make sure to wait until all the processes are done!
+
+    wait
+
+else
+
+    # Must be running on a compute node. The job number was passed by the
+    # mother superior (see above).
+
+    HOSTLIST=${WORKDIR}/hostlist.$2
+
+    # Now, we have to get the name of mother superior from the host
+    # list. Thats so we know where the dispatcher is running. Simply
+    # grab the first entry from the hostlist file and press on.
+
+    MS=`head -1 ${HOSTLIST}`
+
+    # Ready to go. Spin up the workers. The mother superior passed
+    # the job wall time as argument 1 when the script is called, so
+    # we have all the values needed for workers:
+
+    python ${WORKDIR}/wq.py --workers ${WPN} --mothersuperior ${MS} \
+        --time $1
+
+fi
+
+# Give a bit of time to make sure dispatcher has shut down cleanly.
+# The WAIT above should allow for this, but coming down on the side of
+# paranoia:
+
+sleep 2

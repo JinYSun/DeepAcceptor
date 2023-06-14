@@ -1,0 +1,28 @@
+data:
+  batch_size: 50
+  smiles_file: datasets/0.txt
+  type_of_encoding: 1
+
+decoder:
+  latent_dimension: 50
+  gru_neurons_num: 100
+  gru_stack_size: 1
+
+encoder:
+  layer_1d: 100
+  layer_2d: 100
+  layer_3d: 100
+  latent_dimension: 50
+
+training:
+  # KLD_alpha: 1.0e-05
+  lr_enc: 0.0001
+  lr_dec: 0.0001
+  num_epochs: 2
+  sample_num: 1000
+  # dist_criterion: "mmd"
+  # pretrained_model: "QM9"
+  temp: 1.0
+  hard: False
+  temp_min: 0.5
+  anneal_rate: 3.0e-05

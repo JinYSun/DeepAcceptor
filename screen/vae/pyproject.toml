@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "vae_example"
+version = "0.1.0"
+description = ""
+authors = ["Rico Meinl <rmeinl97@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+rdkit-pypi = "^2021.3.5"
+PyYAML = "^5.4.1"
+torch = "^1.9.0"
+pandas = "^1.3.2"
+selfies = "^1.0.4"
+wandb = "^0.12.1"
+Pillow = "^8.3.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

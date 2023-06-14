@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
-from data import mol_to_geognn_graph_data_MMFF3d as smiles2adjoin
-from utils import mol_to_geognn_graph_data_MMFF3d as smiles2adjoins
+from utils import mol_to_geognn_graph_data_MMFF3d as smiles2adjoin
 import tensorflow as tf
 
 str2num = {'<pad>':0 ,'H': 1, 'C': 2, 'N': 3, 'O': 4, 'F': 5, 'S': 6, 'Cl': 7, 'P': 8, 'Br':  9,

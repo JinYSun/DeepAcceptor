@@ -1,0 +1,6 @@
+dude_actives_nr.smi
+dude_decoys_nr.smi
+fda_approved_nr.smi
+nat_nubbe_nr.smi
+nat_unpd_nr.smi
+nat_zinc_nr.smi

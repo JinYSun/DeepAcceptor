@@ -1,0 +1,53 @@
+#+STARTUP: overview
+#+TAGS: WORK(w) IMPROVEMENT(I) LIFE(l) FINANCE(f) READ(r) CODING(c) MIKE(m)
+#+STARTUP: hidestars
+
+* Install RDKit
+https://github.com/rdkit/rdkit/blob/master/Docs/Book/Install.md
+
+* SAscore Applications
+
+Use SAscore to assess the synthetic accessibility
+
+1. Ertl, P. & Schuffenhauer, A. Estimation of synthetic accessibility score of drug-like molecules based on molecular complexity and fragment contributions. J. Cheminform. 1, 1–10 (2009).
+
+* For Misagh
+
+** Source data
+/work/jaydy/dat/tars/
+
+* For Michal
+** Source data
+/work/jaydy/dat/mb_sa/
+
+* DONE [#A] Retrieve data [6/6]                                   :WORK:MIKE:
+CLOSED: [2016-09-22 Thu 10:19] DEADLINE: <2016-09-19 Mon>
+:LOGBOOK:
+CLOCK: [2016-09-21 Wed 17:11]--[2016-09-21 Wed 17:30] =>  0:19
+CLOCK: [2016-09-20 Tue 10:15]--[2016-09-20 Tue 10:31] =>  0:16
+CLOCK: [2016-09-19 Mon 15:00]--[2016-09-19 Mon 16:53] =>  1:53
+CLOCK: [2016-09-19 Mon 13:54]--[2016-09-19 Mon 14:22] =>  0:28
+CLOCK: [2016-09-19 Mon 09:46]--[2016-09-19 Mon 10:20] =>  0:34
+CLOCK: [2016-09-19 Mon 09:07]--[2016-09-19 Mon 09:32] =>  0:25
+CLOCK: [2016-09-16 Fri 17:05]--[2016-09-16 Fri 17:25] =>  0:20
+:END:
+
+1. [X] RuntimeError: module compiled against API version 0xa but this version of numpy is 0x9
+   1. resolved by running on SuperMike
+2. [X] contact:
+   1. 蒲力萌
+   2. lpu1@lsu.edu
+3. [X] convert smi to fingerprint
+   1. example command from Michal converting smi to hex
+      #+BEGIN_SRC shell
+        babel -isdf input.sdf -ofpt output.fpt -xN1024
+      #+END_SRC
+   2. [X] convert from hex to binary
+      ./src/fp.py
+4. [X] convert to fingerprint ~Smi2FP~
+
+5. [X] make a tar ball
+
+6. [X] back up the final results
+   /work/jaydy/dat/sa_score.tar.gz
+
