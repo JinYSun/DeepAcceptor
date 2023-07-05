@@ -12,25 +12,21 @@ It is a time-consuming and costly process to developing affordable and high-perf
 
 We recommend to use [conda](https://conda.io/docs/user-guide/install/download.html) and [pip](https://pypi.org/project/pip/).
 
-[tensorflow](www.tensorflow.org)==2.3.0, 
+[python3.8](https://www.python.org/download) 		
 
-[rdkit](https://rdkit.org/)==2020.03.2, 
-
-[numpy](https://numpy.org/)==1.18.5, 
-
-[pandas](http://pandas.pydata.org/)==1.1.0, 
-
-[openbabel](http://openbabel.org/wiki/Main_Page)==2.3.1
+[Anaconda](https://www.anaconda.com/)
 
 **By using the *environment.yml* file, it will install all the required packages.**
 
-git clone https://github.com/jinysun/deepacceptor.git
+```
+    git clone https://github.com/jinysun/deepacceptor.git
 
-cd DeepAcceptor
+    cd DeepAcceptor
 
-conda env create -f environment.yml
+    conda env create -f environment.yml
 
-conda activate deepacceptor
+    conda activate deepacceptor
+```
 
 ## <u>Usage</u>
 
