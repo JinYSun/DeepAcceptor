@@ -24,6 +24,7 @@ We recommend to use [conda](https://conda.io/docs/user-guide/install/download.ht
 
 **By using the *environment.yml* file, it will install all the required packages.**
 
+''' shell
 git clone https://github.com/jinysun/deepacceptor.git
 
 cd DeepAcceptor
@@ -31,6 +32,7 @@ cd DeepAcceptor
 conda env create -f environment.yml
 
 conda activate deepacceptor
+'''
 
 ## <u>Usage</u>
 
