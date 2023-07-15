@@ -37,12 +37,11 @@ def scaled_dot_product_attention(q, k, v, mask,adjoin_matrix):
     if mask is not None:
         scaled_attention_logits += (mask * -1e9)
     if adjoin_matrix is not None:
-        
-        adjoin_matrix1 =np.where(adjoin_matrix>0,0,-1e9)
-        
-        scaled_attention_logits += adjoin_matrix1
-    scaled_attention_logits = scaled_attention_logits * adjoin_matrix
-
+         #adjoin_matrix1 =tf.where(adjoin_matrix>0,0.0,-1e9)
+         #scaled_attention_logits += adjoin_matrix1
+         #scaled_attention_logits = scaled_attention_logits * adjoin_matrix
+         scaled_attention_logits += adjoin_matrix
+    
         # softmax is normalized on the last axis (seq_len_k) so that the scores
     # add up to 1.
     attention_weights = tf.nn.softmax(scaled_attention_logits, axis=-1)  # (..., seq_len_q, seq_len_k)
@@ -262,8 +261,7 @@ class PredictModel_test(tf.keras.Model):
         self.encoder = Encoder_test(num_layers=num_layers,d_model=d_model,
                         num_heads=num_heads,dff=dff,input_vocab_size=vocab_size,maximum_position_encoding=200,rate=dropout_rate)
 
-        self.fc1 = tf.keras.layers.Dense(256, activation=tf.keras.layers.LeakyReLU(0.25))
-        self.fc2 = tf.keras.layers.Dense(256,activation=tf.keras.layers.LeakyReLU(0.25))
+        self.fc1 = tf.keras.layers.Dense(256, activation=tf.keras.layers.LeakyReLU(0.1))
         self.dropout = tf.keras.layers.Dropout(dense_dropout)
         self.fc2 = tf.keras.layers.Dense(1)
 
@@ -271,9 +269,8 @@ class PredictModel_test(tf.keras.Model):
         x,att,xs = self.encoder(x,training=training,mask=mask,adjoin_matrix=adjoin_matrix)
         x = x[:, 0, :]
         x = self.fc1(x)
-        x = self.dropout(x,training=training)
+        x = self.dropout(x, training=training)
         x = self.fc2(x)
-        x = self.fc3(x)
         return x,att,xs
 
 

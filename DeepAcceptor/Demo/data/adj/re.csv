@@ -1,0 +1,20 @@
+,0,1
+0,"['C' 'N' 'C' 'O' 'C' 'C' 'C' 'O' 'C' 'C' 'C' 'C' 'O' 'C' 'C' 'C' 'C' 'C'
+ 'N' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'N' 'C' 'F' 'C' 'F' 'N' 'C' 'C' 'N' 'S'
+ 'C' 'O' 'N' 'C' 'C' 'O' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H'
+ 'H' 'H' 'H' 'H' 'H' 'H']",data/adj/adj0.npy
+1,"['C' 'N' 'C' 'O' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'N' 'C' 'C' 'C' 'C' 'C'
+ 'C' 'O' 'C' 'C' 'C' 'O' 'C' 'S' 'N' 'C' 'C' 'N' 'C' 'F' 'C' 'F' 'N' 'C'
+ 'C' 'O' 'N' 'C' 'C' 'O' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H'
+ 'H' 'H' 'H' 'H' 'H' 'H']",data/adj/adj1.npy
+2,"['C' 'N' 'C' 'O' 'C' 'C' 'C' 'N' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'O' 'C' 'C'
+ 'O' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'N' 'C' 'N' 'S' 'N' 'N' 'C' 'O' 'N' 'C'
+ 'C' 'O' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H'
+ 'H']",data/adj/adj2.npy
+3,"['C' 'N' 'C' 'O' 'C' 'C' 'C' 'N' 'C' 'C' 'C' 'C' 'C' 'C' 'C' 'O' 'C' 'C'
+ 'C' 'O' 'C' 'C' 'C' 'C' 'C' 'C' 'N' 'C' 'N' 'N' 'S' 'N' 'C' 'O' 'N' 'C'
+ 'C' 'O' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H'
+ 'H']",data/adj/adj3.npy
+4,"['C' 'N' 'C' 'O' 'C' 'C' 'C' 'S' 'C' 'C' 'N' 'C' 'C' 'N' 'C' 'C' 'C' 'C'
+ 'C' 'S' 'C' 'C' 'O' 'C' 'C' 'C' 'O' 'C' 'C' 'N' 'C' 'C' 'N' 'C' 'O' 'N'
+ 'C' 'C' 'O' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H' 'H']",data/adj/adj4.npy

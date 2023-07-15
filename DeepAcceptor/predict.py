@@ -12,7 +12,7 @@ import tensorflow.keras.layers as layers
 from tensorflow.keras.constraints import max_norm
 import pandas as pd
 import numpy as np
-
+import sys
 from dataset import Graph_Regression_test #Graph_Regression_Dataset,
 from sklearn.metrics import r2_score,roc_auc_score
 
@@ -126,53 +126,21 @@ def main(seed):
 
     return test_r2, prediction_test
 
-def plot_confusion_matrix(cm, savename, title='Confusion Matrix'):
-
-    plt.figure(figsize=(12, 8), dpi=100)
-    np.set_printoptions(precision=2)
-
-    # 在混淆矩阵中每格的概率值
-    ind_array = [np.arange(3)]
-    x, y = np.meshgrid(ind_array, ind_array)
-    for x_val, y_val in zip(x.flatten(), y.flatten()):
-        c = cm[y_val][x_val]
-        if c > 0.001:
-            plt.text(x_val, y_val, "%0.2f" % (c,), color='red', fontsize=15, va='center', ha='center')
-    
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.binary)
-    plt.title(title)
-    plt.colorbar()
-    xlocations = np.array(range(3))
-    plt.xticks(xlocations, rotation=90)
-    plt.yticks(xlocations)
-    plt.ylabel('Actual label')
-    plt.xlabel('Predict label')
-    
-    # offset the tick
-    tick_marks = np.array(range(3)) + 0.5
-    plt.gca().set_xticks(tick_marks, minor=True)
-    plt.gca().set_yticks(tick_marks, minor=True)
-    plt.gca().xaxis.set_ticks_position('none')
-    plt.gca().yaxis.set_ticks_position('none')
-    plt.grid(True, which='minor', linestyle='-')
-    plt.gcf().subplots_adjust(bottom=0.15)
-    
-    # show confusion matrix
-    plt.savefig(savename, format='png')
-    plt.show()
 if __name__ == "__main__":
     result =[]
     r2_list = []
+    np.set_printoptions(threshold=sys.maxsize)
     for seed in [24]:
         print(seed)
         r2 ,prediction_val= main(seed)
         result.append(prediction_val)
         r2_list.append(r2)
-    print(r2_list)
+    print(prediction_val)
     from sklearn.metrics import mean_absolute_error,r2_score,mean_squared_error
     from scipy.stats import pearsonr
     from sklearn.metrics import confusion_matrix
     import matplotlib.pyplot as plt
     import numpy as np
-    re = []
+    pre = pd.DataFrame(prediction_val).T
+    pre.to_csv('results.csv')
  
