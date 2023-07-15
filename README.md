@@ -111,7 +111,7 @@ The PCE prediction is obtained by feeding the the processed molecules into the a
 
 ## <u>Designing and Screening</u>
 
-![screen](screen.jpg)
+![screen](screen/screen.jpg)
 
 ### Molecular generation
 
