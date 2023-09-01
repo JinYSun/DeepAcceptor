@@ -2,9 +2,26 @@
 """
 Created on Tue Apr 27 22:08:23 2021
 
-@author:Jinyusun
+@author: BM109X32G-10GPU-02
 """
 
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Nov 15 13:46:29 2020
+
+@author: de''
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Nov 15 10:40:57 2020
+
+@author: de''
+"""
+
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.datasets import make_blobs
 import json
@@ -12,14 +29,13 @@ import numpy as np
 import math
 from tqdm import tqdm
 from scipy import sparse
-from sklearn.metrics import roc_auc_score,roc_curve,auc
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import median_absolute_error,r2_score, mean_absolute_error,mean_squared_error
 
 import pandas as pd
 import matplotlib.pyplot as plt
 from rdkit import Chem
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neural_network import MLPClassifier
@@ -106,6 +122,40 @@ def split_dataset(dataset, ratio):
     #np.random.shuffle(dataset)
     n = int(ratio * len(dataset))
     return dataset[:n], dataset[n:]
+def plot_confusion_matrix(cm, savename, title='Confusion Matrix'):
+
+    plt.figure(figsize=(12, 8), dpi=100)
+    np.set_printoptions(precision=2)
+
+    # 在混淆矩阵中每格的概率值
+    ind_array = [np.arange(3)]
+    x, y = np.meshgrid(ind_array, ind_array)
+    for x_val, y_val in zip(x.flatten(), y.flatten()):
+        c = cm[y_val][x_val]
+        if c > 0.001:
+            plt.text(x_val, y_val, "%0.2f" % (c,), color='red', fontsize=15, va='center', ha='center')
+    
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.binary)
+    plt.title(title)
+    plt.colorbar()
+    xlocations = np.array(range(len(classes)))
+    plt.xticks(xlocations, classes, rotation=90)
+    plt.yticks(xlocations, classes)
+    plt.ylabel('Actual label')
+    plt.xlabel('Predict label')
+    
+    # offset the tick
+    tick_marks = np.array(range(len(classes))) + 0.5
+    plt.gca().set_xticks(tick_marks, minor=True)
+    plt.gca().set_yticks(tick_marks, minor=True)
+    plt.gca().xaxis.set_ticks_position('none')
+    plt.gca().yaxis.set_ticks_position('none')
+    plt.grid(True, which='minor', linestyle='-')
+    plt.gcf().subplots_adjust(bottom=0.15)
+    
+    # show confusion matrix
+    plt.savefig(savename, format='png')
+    plt.show()
 def edit_dataset(drug,non_drug,task):
   #  np.random.seed(111)  # fix the seed for shuffle.
 
@@ -124,10 +174,10 @@ def edit_dataset(drug,non_drug,task):
   #  dataset_dev = dataset_dev_drug+dataset_dev_no
     return dataset_train, dataset_test
 if __name__ == "__main__":
-    data_train= pd.read_csv('E:/code/drug/drugnn/data_train.csv')
-    data_test=pd.read_csv('E:/code/drug/drugnn/bro5.csv')
+    data_train= pd.read_csv(r"H:\library\NFA-BERT\Discussion\MolCLR\data\train3.csv")
+    data_test=pd.read_csv(r"H:\library\NFA-BERT\Discussion\MolCLR\data\test3.csv")
     inchis = list(data_train['SMILES'])
-    rts = list(data_train['type'])
+    rts = list(data_train['PCE'])
     
     smiles, targets = [], []
     for i, inc in enumerate(tqdm(inchis)):
@@ -139,7 +189,7 @@ if __name__ == "__main__":
             smiles.append(smi)
             targets.append(rts[i])
             
-    words = get_dict(smiles, save_path='E:\code\FingerID Reference\drug-likeness/dict.json')
+    words = get_dict(smiles, save_path='dict.json')
     
     features = []
     for i, smi in enumerate(tqdm(smiles)):
@@ -159,7 +209,7 @@ if __name__ == "__main__":
     
   
     inchis = list(data_test['SMILES'])
-    rts = list(data_test['type'])
+    rts = list(data_test['PCE'])
     
     smiles, targets = [], []
     for i, inc in enumerate(tqdm(inchis)):
@@ -184,13 +234,8 @@ if __name__ == "__main__":
     Y_test=targets
     n_features=10
     
-    model = RandomForestClassifier(n_estimators=5,max_features='auto', max_depth=None,min_samples_split=5, bootstrap=True)
-    #model = MLPClassifier(rangdom_state=1,max_iter=300)
-    #model = SVC()
+    model = RandomForestRegressor(n_estimators=100,  criterion='friedman_mse', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None)
    
-    # earlyStopping = EarlyStopping(monitor='val_loss', patience=0.05, verbose=0, mode='min')
-    #mcp_save = ModelCheckpoint('C:/Users/sunjinyu/Desktop/FingerID Reference/drug-likeness/CNN/single_model.h5', save_best_only=True, monitor='accuracy', mode='auto')
-  #  reduce_lr_loss = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1, epsilon=1e-4, mode='min')
     from tensorflow.keras import backend as K
     X_train = K.cast_to_floatx(X_train).reshape((np.size(X_train,0),np.size(X_train,1)*np.size(X_train,2)))
 
@@ -199,43 +244,21 @@ if __name__ == "__main__":
 #    X_train,Y_train = make_blobs(n_samples=300, n_features=n_features, centers=6)
     model.fit(X_train, Y_train)
 
-
+    
  #   model = load_model('C:/Users/sunjinyu/Desktop/FingerID Reference/drug-likeness/CNN/single_model.h5')
     Y_predict = model.predict(K.cast_to_floatx(X_test).reshape((np.size(X_test,0),np.size(X_test,1)*np.size(X_test,2))))
      #Y_predict = model.predict(X_test)#训练数据
     x = list(Y_test)
     y = list(Y_predict)
-    from pandas.core.frame import DataFrame   
-    x=DataFrame(x)
-    y=DataFrame(y)
-  #  X= pd.concat([x,y], axis=1)
-    #X.to_csv('C:/Users/sunjinyu/Desktop/FingerID Reference/drug-likeness/CNN/molecularGNN_smiles-master/0825/single-CNN-seed444.csv')
-    Y_predict = [1 if i >0.4 else 0 for i in Y_predict]
-
-    cnf_matrix=confusion_matrix(Y_test, Y_predict)
-    cnf_matrix
+    cc = np.array([x, y])
+    cc_zscore_corr = np.corrcoef(cc)
+    from scipy.stats import pearsonr
+    print(pearsonr(x,y))
     
-    tn = cnf_matrix[0,0]
-    tp = cnf_matrix[1,1]
-    fn = cnf_matrix[1,0]
-    fp = cnf_matrix[0,1]
-    
-    bacc = ((tp/(tp+fn))+(tn/(tn+fp)))/2#balance accurance
-    pre = tp/(tp+fp)#precision/q+
-    rec = tp/(tp+fn)#recall/se
-    sp=tn/(tn+fp)
-    q_=tn/(tn+fn)
-    f1 = 2*pre*rec/(pre+rec)#f1score
-    mcc = ((tp*tn) - (fp*fn))/math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))#Matthews correlation coefficient
-    acc=(tp+tn)/(tp+fp+fn+tn)#accurancy
-    fpr, tpr, thresholds =roc_curve(Y_test, Y_predict)
-    AUC = auc(fpr, tpr)
-    print('bacc:',bacc)
-    print('pre:',pre)
-    print('rec:',rec)
-    print('f1:',f1)
-    print('mcc:',mcc)
-    print('sp:',sp)
-    print('q_:',q_)
-    print('acc:',acc)
-    print('auc:',AUC)
+    r2 = r2_score(x,y)
+    mae = mean_absolute_error(x,y)
+    mse = mean_squared_error(x,y)
+   
+    from scipy.stats import pearsonr
+    print(pearsonr(x,y))
+    print(r2, mae , mse)

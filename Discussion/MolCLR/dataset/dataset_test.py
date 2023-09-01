@@ -185,39 +185,33 @@ class MolTestDatasetWrapper(object):
         assert splitting in ['random', 'scaffold']
 
     def get_data_loaders(self):
-        train_dataset = MolTestDataset(data_path=self.data_path, target=self.target, task=self.task)
-        train_loader, valid_loader, test_loader = self.get_train_validation_data_loaders(train_dataset)
+        train_dataset = MolTestDataset(data_path=self.data_path[0], target=self.target, task=self.task)
+        test_dataset = MolTestDataset(data_path=self.data_path[1], target=self.target, task=self.task)
+        
+        train_loader, valid_loader, test_loader = self.get_train_validation_data_loaders(train_dataset,test_dataset)
         return train_loader, valid_loader, test_loader
 
-    def get_train_validation_data_loaders(self, train_dataset):
+    def get_train_validation_data_loaders(self, train_dataset,test_dataset):
         if self.splitting == 'random':
             # obtain training indices that will be used for validation
             num_train = len(train_dataset)
-            indices = list(range(num_train))
-            np.random.shuffle(indices)
-
-            split = int(np.floor(self.valid_size * num_train))
-            split2 = int(np.floor(self.test_size * num_train))
-            valid_idx, test_idx, train_idx = indices[:split], indices[:split+split2], indices[split+split2:]
+            
         
         elif self.splitting == 'scaffold':
             train_idx, valid_idx, test_idx = scaffold_split(train_dataset, self.valid_size, self.test_size)
 
         # define samplers for obtaining training and validation batches
-        train_sampler = SubsetRandomSampler(train_idx)
-        valid_sampler = SubsetRandomSampler(valid_idx)
-        test_sampler = SubsetRandomSampler(test_idx)
 
         train_loader = DataLoader(
-            train_dataset, batch_size=self.batch_size, sampler=train_sampler,
+            train_dataset, batch_size=self.batch_size, 
             num_workers=self.num_workers, drop_last=False
         )
         valid_loader = DataLoader(
-            train_dataset, batch_size=self.batch_size, sampler=valid_sampler,
+            test_dataset, batch_size=self.batch_size, 
             num_workers=self.num_workers, drop_last=False
         )
         test_loader = DataLoader(
-            train_dataset, batch_size=self.batch_size, sampler=test_sampler,
+            test_dataset, batch_size=self.batch_size, 
             num_workers=self.num_workers, drop_last=False
         )
 

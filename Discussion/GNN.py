@@ -1,30 +1,35 @@
-import timeit
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr  2 10:25:57 2021
 
+@author: BM109X32G-10GPU-02
+"""
+
+import pandas as pd
+import matplotlib
+from pandas import DataFrame
+import matplotlib.pyplot as plt
+from sklearn.metrics import median_absolute_error,r2_score, mean_absolute_error,mean_squared_error
+import sys
+import timeit
 import numpy as np
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import pickle
-from sklearn.metrics import roc_auc_score,roc_curve
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score
 import preprocess as pp
-import pandas as pd
-import matplotlib.pyplot as plt
-    
-    
-class MolecularGraphNeuralNetwork(nn.Module):
-    def __init__(self, N_fingerprints, dim, layer_hidden, layer_output):
-        super(MolecularGraphNeuralNetwork, self).__init__()
-        self.embed_fingerprint = nn.Embedding(N_fingerprints, dim)
-        self.W_fingerprint =   nn.ModuleList([nn.Linear(dim, dim)
-                                            for _ in range(layer_hidden)])
+import pickle
 
+class MolecularGraphNeuralNetwork(nn.Module):
+    def __init__(self, N, dim, layer_hidden, layer_output):
+        super(MolecularGraphNeuralNetwork, self).__init__()
+        self.embed_fingerprint = nn.Embedding(N, dim)
+        self.W_fingerprint = nn.ModuleList([nn.Linear(dim, dim)
+                                            for _ in range(layer_hidden)])
         self.W_output = nn.ModuleList([nn.Linear(dim, dim)
                                        for _ in range(layer_output)])
-        self.W_property = nn.Linear(dim, 2)
-
+        self.W_property = nn.Linear(dim, 1)
 
     def pad(self, matrices, pad_value):
         """Pad the list of matrices
@@ -47,66 +52,74 @@ class MolecularGraphNeuralNetwork(nn.Module):
 
     def update(self, matrix, vectors, layer):
         hidden_vectors = torch.relu(self.W_fingerprint[layer](vectors))
-
         return hidden_vectors + torch.matmul(matrix, hidden_vectors)
 
     def sum(self, vectors, axis):
         sum_vectors = [torch.sum(v, 0) for v in torch.split(vectors, axis)]
         return torch.stack(sum_vectors)
+
+    def mean(self, vectors, axis):
+        mean_vectors = [torch.mean(v, 0) for v in torch.split(vectors, axis)]
+        return torch.stack(mean_vectors)
+
     def gnn(self, inputs):
 
         """Cat or pad each input data for batch processing."""
         Smiles,fingerprints, adjacencies, molecular_sizes = inputs
         fingerprints = torch.cat(fingerprints)
         adjacencies = self.pad(adjacencies, 0)
-
+        if len(fingerprints) !=  len(adjacencies):
+            zero=torch.LongTensor(np.zeros(((len(adjacencies)-len(fingerprints))))).to(device)
+            fingerprints =torch.cat( [fingerprints,zero])
         """GNN layer (update the fingerprint vectors)."""
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
+      
         for l in range(layer_hidden):
+            
             hs = self.update(adjacencies, fingerprint_vectors, l)
             fingerprint_vectors = F.normalize(hs, 2, 1)  # normalize.
 
         """Molecular vector by sum or mean of the fingerprint vectors."""
         molecular_vectors = self.sum(fingerprint_vectors, molecular_sizes)
-          
+
         return Smiles,molecular_vectors
 
     def mlp(self, vectors):
-        """Classifier  based on multilayer perceptron给予多层感知器的分类器."""
+        """ regressor based on multilayer perceptron."""
         for l in range(layer_output):
             vectors = torch.relu(self.W_output[l](vectors))
-        outputs = torch.sigmoid(self.W_property(vectors))
+        outputs = self.W_property(vectors)
         return outputs
-
-
-    def forward_classifier(self, data_batch, train):
+    def forward_regressor(self, data_batch, train):
 
         inputs = data_batch[:-1]
-        correct_labels = torch.cat(data_batch[-1])
+        correct_values = torch.cat(data_batch[-1])
 
         if train:
             Smiles,molecular_vectors = self.gnn(inputs)
-          
-            predicted_scores = self.mlp(molecular_vectors)
-            
-            loss = F.cross_entropy(predicted_scores, correct_labels.long())
-            predicted_scores = predicted_scores.to('cpu').data.numpy()
-            predicted_scores = [s[1] for s in predicted_scores]
-      
-            
-            correct_labels = correct_labels.to('cpu').data.numpy()
-            return loss,predicted_scores, correct_labels
+            predicted_values = self.mlp(molecular_vectors)
+            loss = F.mse_loss(predicted_values, correct_values)
+            return loss
         else:
             with torch.no_grad():
                 Smiles,molecular_vectors = self.gnn(inputs)
-                predicted_scores = self.mlp(molecular_vectors)
-                loss = F.cross_entropy(predicted_scores, correct_labels.long())
-            predicted_scores = predicted_scores.to('cpu').data.numpy()
-            predicted_scores = [s[1] for s in predicted_scores]
-            correct_labels = correct_labels.to('cpu').data.numpy()
-         
-            return Smiles,loss,predicted_scores, correct_labels
-
+                predicted_values = self.mlp(molecular_vectors)
+            predicted_values = predicted_values.to('cpu').data.numpy()
+            correct_values = correct_values.to('cpu').data.numpy()
+            predicted_values = np.concatenate(predicted_values)
+            correct_values = np.concatenate(correct_values)
+            return Smiles,predicted_values, correct_values
+    def forward_predict(self, data_batch):
+        inputs = data_batch
+    
+        Smiles,molecular_vectors = self.gnn(inputs)
+        predicted_values = self.mlp(molecular_vectors)
+        predicted_values = predicted_values.to('cpu').data.numpy()
+        predicted_values = np.concatenate(predicted_values)
+        
+        
+        return Smiles,predicted_values
+        
 class Trainer(object):
     def __init__(self, model):
         self.model = model
@@ -116,138 +129,135 @@ class Trainer(object):
         np.random.shuffle(dataset)
         N = len(dataset)
         loss_total = 0
-        P, C = [], []
         for i in range(0, N, batch_train):
             data_batch = list(zip(*dataset[i:i+batch_train]))
-            loss,predicted_scores, correct_labels= self.model.forward_classifier(data_batch, train=True)
-         
-            P.append(predicted_scores)
-            C.append(correct_labels)
+            loss = self.model.forward_regressor(data_batch, train=True)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
             loss_total += loss.item()
-        tru=np.concatenate(C)
-        pre=np.concatenate(P)
-        AUC = roc_auc_score(tru, pre)
-        pred = [1 if i >0.4 else 0 for i in pre]
-        predictions =np.stack((tru,pred,pre))
-        return AUC, loss_total,predictions
-
+        return loss_total
 
 class Tester(object):
     def __init__(self, model):
         self.model = model
-
-    def test_classifier(self, dataset):
+    def test_regressor(self, dataset):
         N = len(dataset)
-        loss_total = 0
-        SMILES,P, C ='', [], []
+        SMILES, Ts, Ys = '', [], []
+        SAE = 0  # sum absolute error.
         for i in range(0, N, batch_test):
             data_batch = list(zip(*dataset[i:i+batch_test]))
-            (Smiles,loss,predicted_scores,correct_labels) = self.model.forward_classifier(
+            (Smiles,  predicted_values,correct_values) = self.model.forward_regressor(
                                                data_batch, train=False)
-            
             SMILES += ' '.join(Smiles) + ' '
-   
-            loss_total += loss.item()
-            P.append(predicted_scores)
-            C.append(correct_labels)
+            Ts.append(correct_values)
+            Ys.append(predicted_values)
+            
+            SAE += sum(np.abs(predicted_values-correct_values))
         SMILES = SMILES.strip().split()
-        tru=np.concatenate(C)
-    
-        pre=np.concatenate(P)
-        AUC = roc_auc_score(tru, pre)
-        pred = [1 if i >0.4 else 0 for i in pre]
-      #  Tru=map(str,np.concatenate(C))
-      #  Pre=map(str,np.concatenate(P))
-      #  predictions = '\n'.join(['\t'.join(x) for x in zip(SMILES, Tru, Pre)])
-        predictions =np.stack((tru,pred,pre))
-        return AUC, loss_total,predictions
-    def save_result(self, result, filename):
+        T, Y = map(str, np.concatenate(Ts)), map(str, np.concatenate(Ys))
+        #MSE = SE_sum / N
+        predictions = '\n'.join(['\t'.join(x) for x in zip(SMILES, T, Y)])
+        MAEs = SAE / N  # mean absolute error.
+        return MAEs,predictions
+    def test_predict(self, dataset):
+        N = len(dataset)
+        SMILES, Ts, Ys = '', [], []
+        SAE = 0  # sum absolute error.
+        for i in range(0, N, batch_test):
+            data_batch = list(zip(*dataset[i:i+batch_test]))
+            (Smiles,  predicted_values) = self.model.forward_predict(
+                                               data_batch)
+            SMILES += ' '.join(Smiles) + ' '
+            Ys.append(predicted_values)
+        SMILES = SMILES.strip().split()
+        Y = map(str, np.concatenate(Ys))
+        predictions = '\n'.join(['\t'.join(x) for x in zip(SMILES, Y)])
+        return predictions
+    def save_MAEs(self, MAEs, filename):
         with open(filename, 'a') as f:
-            f.write(result + '\n')
+            f.write(MAEs + '\n')
     def save_predictions(self, predictions, filename):
         with open(filename, 'w') as f:
             f.write('Smiles\tCorrect\tPredict\n')
             f.write(predictions + '\n')
     def save_model(self, model, filename):
         torch.save(model.state_dict(), filename)
+
 def split_dataset(dataset, ratio):
     """Shuffle and split a dataset."""
-    np.random.seed(111)  # fix the seed for shuffle.
+    np.random.seed(1234)  # fix the seed for shuffle.
     np.random.shuffle(dataset)
     n = int(ratio * len(dataset))
     return dataset[:n], dataset[n:]
-def edit_dataset(drug,non_drug,task):
-    np.random.seed(111)  # fix the seed for shuffle.
-    
-    if task =='balance':
-        #np.random.shuffle(non_drug)
-        non_drug=non_drug[0:len(drug)]
-       
-    else:
-        np.random.shuffle(non_drug)
-    np.random.shuffle(drug)
-    dataset_train_drug, dataset_test_drug = split_dataset(drug, 0.9)
-   # dataset_train_drug,dataset_dev_drug =  split_dataset(dataset_train_drug, 0.9)
-    dataset_train_no, dataset_test_no = split_dataset(non_drug, 0.9)
-   # dataset_train_no,dataset_dev_no =  split_dataset(dataset_train_no, 0.9)
-    dataset_train =  dataset_train_drug+dataset_train_no
-    dataset_test= dataset_test_drug+dataset_test_no
-  #  dataset_dev = dataset_dev_drug+dataset_dev_no
-    return dataset_train, dataset_test
-
 def dump_dictionary(dictionary, filename):
         with open(filename, 'wb') as f:
             pickle.dump(dict(dictionary), f)
+ 
+def plot_confusion_matrix(cm, savename, title='Confusion Matrix'):
+
+    plt.figure(figsize=(12, 8), dpi=100)
+    np.set_printoptions(precision=2)
+
+    # 在混淆矩阵中每格的概率值
+    ind_array = [np.arange(3)]
+    x, y = np.meshgrid(ind_array, ind_array)
+    for x_val, y_val in zip(x.flatten(), y.flatten()):
+        c = cm[y_val][x_val]
+        if c > 0.001:
+            plt.text(x_val, y_val, "%0.2f" % (c,), color='red', fontsize=15, va='center', ha='center')
+    
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.binary)
+    plt.title(title)
+    plt.colorbar()
+    xlocations = np.array(range(len(3)))
+    plt.xticks(xlocations, classes, rotation=90)
+    plt.yticks(xlocations, classes)
+    plt.ylabel('Actual label')
+    plt.xlabel('Predict label')
+    
+    # offset the tick
+    tick_marks = np.array(range(len(classes))) + 0.5
+    plt.gca().set_xticks(tick_marks, minor=True)
+    plt.gca().set_yticks(tick_marks, minor=True)
+    plt.gca().xaxis.set_ticks_position('none')
+    plt.gca().yaxis.set_ticks_position('none')
+    plt.grid(True, which='minor', linestyle='-')
+    plt.gcf().subplots_adjust(bottom=0.15)
+    
+    # show confusion matrix
+    plt.savefig(savename, format='png')
+    plt.show()
 if __name__ == "__main__":
-       
     radius=1
-    dim=65
-    layer_hidden=0
-    layer_output=5
-
-    batch_train=48
-    batch_test=48
-    lr=3e-4
+    dim=54
+    layer_hidden=4
+    layer_output=6
+    batch_train=10
+    batch_test=10
+    lr=1e-4
     lr_decay=0.85
-    decay_interval=10#下降间隔
-    iteration=140
+    decay_interval=25
+    iteration=500
     N=5000
-    (radius, dim, layer_hidden, layer_output,
-     batch_train, batch_test, decay_interval,
-     iteration) = map(int, [radius, dim, layer_hidden, layer_output,
-                            batch_train, batch_test,
-                            decay_interval, iteration])
-    lr, lr_decay = map(float, [lr, lr_decay])
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-        print('The code uses a GPU!')
-    else:
-        device = torch.device('cpu')
-        print('The code uses a CPU...')
-    print('-'*100)
-
-#    print('Preprocessing the', dataset, 'dataset.')
-    print('Just a moment......')
-    print('-'*100)
-    path='E:/code/drug/drugnn/'
+    path=''
     dataname=''
+    device = torch.device('cpu')
+    import datetime
+    time1=str(datetime.datetime.now())[0:13]
+    dataset_train = pp.create_dataset('train3.txt',path,dataname)
+    dataset_test = pp.create_dataset('test3.txt',path,dataname)
+   # dataset_train, dataset_dev = split_dataset(dataset_train, 0.9)  
     
-    dataset_train = pp.create_dataset('data_train.txt',path,dataname)
-    dataset_test = pp.create_dataset('data_test.txt',path,dataname)
-    
-    #dataset_train, dataset_test = edit_dataset(dataset_drug, dataset_nondrug,'balance')   
-    #dataset_train, dataset_dev = split_dataset(dataset_train, 0.9)   
-    print('The preprocess has finished!')
-    print('# of training data samples:', len(dataset_train))
-    #print('# of development data samples:', len(dataset_dev))
-    print('# of test data samples:', len(dataset_test))
-    print('-'*100)
-
-    print('Creating a model.')
-    torch.manual_seed(111)
+    lr, lr_decay = map(float, [lr, lr_decay])
+    # if torch.cuda.is_available():
+    #     device = torch.device('cuda')
+    #     print('The code uses a GPU!')
+    # else:
+    #     device = torch.device('cpu')
+    #     print('The code uses a CPU...')
+   
+    torch.manual_seed(1234)
     model = MolecularGraphNeuralNetwork(
             N, dim, layer_hidden, layer_output).to(device)
     trainer = Trainer(model)
@@ -255,159 +265,101 @@ if __name__ == "__main__":
     print('# of model parameters:',
           sum([np.prod(p.size()) for p in model.parameters()]))
     print('-'*100)
-    file_result = path+'AUC'+'.txt'
-#    file_result = '../output/result--' + setting + '.txt'
-    result = 'Epoch\tTime(sec)\tLoss_train\tLoss_test\tAUC_train\tAUC_test'
-    file_test_result  =  path+ 'test_prediction'+ '.txt'
-    file_predictions =  path+'train_prediction' +'.txt'
-    file_model =   path+'model'+'.h5'
-    with open(file_result, 'w') as f:
-        f.write(result + '\n')
+
+    expain = 'gen'
+    file_MAEs = path+'PCE_MAEs'+'.txt'
+    file_test_result  = path+'PCE_test_prediction'+ '.txt'
+    file_dev_result  = path+ 'PCE_val_prediction'+ '.txt'
+    file_train_result  = path+'PCE_train_prediction'+ '.txt'
+    file_model = path+'PCE_model'+'.h5'
+    file1= path +'PCE-MAE.png'
+    file2= path +'PCE-train.png'
+    file3= path +'PCE-test.png'
+    file4= path +'PCE-val.png'
+       
+    result = 'Epoch\tTime(sec)\tLoss_train\tMAE_train\tMAE_dev'  
+    #tMAE_test
 
     print('Start training.')
     print('The result is saved in the output directory every epoch!')
-
-    np.random.seed(111)
-
     start = timeit.default_timer()
-
     for epoch in range(iteration):
-
         epoch += 1
         if epoch % decay_interval == 0:
             trainer.optimizer.param_groups[0]['lr'] *= lr_decay
-#[‘amsgrad’, ‘params’, ‘lr’, ‘betas’, ‘weight_decay’, ‘eps’]
-        prediction_train,loss_train,train_res= trainer.train(dataset_train)
-       
-
-        #prediction_dev,dev_res = tester.test_classifier(dataset_dev)
-        prediction_test,loss_test,test_res = tester.test_classifier(dataset_test)
-
-
+        model.train()
+        loss_train = trainer.train(dataset_train)
+        MAE_tf_best=9999999
+        model.eval()
+        MAE_tf_train,predictions_train_tf = tester.test_regressor(dataset_train)
+        MAE_tf_dev = tester.test_regressor(dataset_test)[0]
+        #MAE_tf_test = tester.test_predict(dataset_dev)[0]
         time = timeit.default_timer() - start
-
         if epoch == 1:
             minutes = time * iteration / 60
             hours = int(minutes / 60)
             minutes = int(minutes - 60 * hours)
             print('The training will finish in about',
-                  hours, 'hours', minutes, 'minutes.')
+                   hours, 'hours', minutes, 'minutes.')
             print('-'*100)
             print(result)
+        results = '\t'.join(map(str, [epoch, time, loss_train,MAE_tf_train, MAE_tf_dev]))#, MAE_tf_test
+        tester.save_MAEs(results, file_MAEs)
+        if MAE_tf_dev <= MAE_tf_best:
+            MAE_tf_best = MAE_tf_dev
+           # tester.save_model(model, file_model)
+        print(results)
 
-        result = '\t'.join(map(str, [epoch, time, loss_train, loss_test,prediction_train,prediction_test]))
-        tester.save_result(result, file_result)
-
-        print(result)
-        
-
-    
-    loss = pd.read_table(file_result)
-    plt.plot(loss['Loss_train'], color='r',label='Loss of train set')
-    plt.plot(loss['Loss_test'], color='y',label='Loss of train set')
-    plt.plot(loss['AUC_train'], color='y',label='AUC of train set')
-    plt.plot(loss['AUC_test'], color='b',label='AUC of test set')
-   # plt.plot(loss['AUC_test'], color='y',label='AUC of test set')
-    plt.ylabel('AUC')
+    loss = pd.read_table(file_MAEs)
+    plt.plot(loss['MAE_train'], color='b',label='MSE of train set')
+    plt.plot(loss['MAE_dev'], color='y',label='MSE of validation set')
+    #plt.plot(loss['MAE_test'], color='green',label='MSE of test set')
+    plt.ylabel('PCELoss')
     plt.xlabel('Epoch')
     plt.legend()
-    plt.savefig(path+'loss.tif',dpi=300)
+    plt.savefig(file1,dpi=300)
     plt.show()
-    colors = ['#00CED1','#DC143C' ]
+    
+    predictions_train = tester.test_regressor(dataset_train)[1]
+    tester.save_predictions(predictions_train, file_train_result )
+    predictions_test = tester.test_regressor(dataset_test)[1]
+    tester.save_predictions(predictions_test, file_test_result)
+    
+    
+    res = pd.read_table(file_train_result)
+    
+    r2 = r2_score(res ['Correct'], res ['Predict'])
+    mae = mean_absolute_error(res ['Correct'], res ['Predict'])
+    medae = median_absolute_error(res ['Correct'], res ['Predict'])
+    mse = mean_squared_error(res ['Correct'], res ['Predict'])
+    
+    # r2 = r2_score(res ['Correct'], res ['Predict'])
+    # mae = mean_absolute_error(res ['Correct'], res ['Predict'])
+    # medae = median_absolute_error(res ['Correct'], res ['Predict'])
+    # rmae = np.mean(np.abs(res ['Correct'] - res ['Predict']) / res ['Correct']) * 100
+    # median_re = np.median(np.abs(res ['Correct'] - res ['Predict']) / res ['Correct'])
+    # mean_re=np.mean(np.abs(res ['Correct'] - res ['Predict']) / res ['Correct'])
+    # plt.plot(res ['Correct'], res ['Predict'], '.', color = 'yellow')
+    # plt.plot([4,12], [4,12], color ='red')
+    # plt.ylabel('Predicted PCE')
+    # plt.xlabel('Experimental PCE')        
+    # plt.text(4,12, 'R2='+str(round(r2,4)), fontsize=12)
+    # plt.text(6,11,'MAE='+str(round(mae,4)),fontsize=12)
+    # plt.text(8, 10, 'MedAE='+str(round(medae,4)), fontsize=12)
+    # plt.text(4, 11, 'MRE='+str(round(mean_re,4)), fontsize=12)
+    # plt.text(6, 12, 'MedRE='+str(round(median_re,4)), fontsize=12)
+    # plt.savefig( path+expain+time1+'PCE-dev.tif',dpi=300)
+    # plt.figure()
+    # plt.show()
+    
+    res  = pd.read_table(file_test_result)
+    r2 = r2_score(res ['Correct'], res ['Predict'])
+    mae = mean_absolute_error(res ['Correct'], res ['Predict'])
+    medae = median_absolute_error(res ['Correct'], res ['Predict'])
+    mse = mean_squared_error(res ['Correct'], res ['Predict'])
+    from scipy.stats import pearsonr
+    print(pearsonr(res ['Correct'], res ['Predict']))
+    from sklearn.metrics import confusion_matrix
+    import matplotlib.pyplot as plt
+    import numpy as np
 
-    target_names=np.array(['druglike','not-drug'])
-    lw=2
-    res_test  = test_res.T
-
-    for color,i,target_name in zip(colors,[1,0],target_names):
-      
-        plt.scatter((res_test[res_test[:,0]==i,0]),(res_test[res_test[:,0]==i,2]),color = color,alpha=.8,lw=lw,label=target_name)
-    plt.legend(loc='best',shadow=False,scatterpoints=1)
-    plt.title('the results of gnn classification')
-    res_train  = train_res.T
-    cn_matrix=confusion_matrix(res_train[:,0], res_train[:,1])
-    cn_matrix
-    
-    tn1 = cn_matrix[0,0]
-    tp1 = cn_matrix[1,1]
-    fn1 = cn_matrix[1,0]
-    fp1 = cn_matrix[0,1]
-
-   
-    bacc_train = ((tp1/(tp1+fn1))+(tn1/(tn1+fp1)))/2#balance accurance
-    pre_train = tp1/(tp1+fp1)#precision/q+
-    rec_train = tp1/(tp1+fn1)#recall/se
-    sp_train=tn1/(tn1+fp1)
-    q__train=tn1/(tn1+fn1)
-    f1_train = 2*pre_train*rec_train/(pre_train+rec_train)#f1score
-    mcc_train = ((tp1*tn1) - (fp1*fn1))/math.sqrt((tp1+fp1)*(tp1+fn1)*(tn1+fp1)*(tn1+fn1))#Matthews correlation coefficient
-    acc_train=(tp1+tn1)/(tp1+fp1+fn1+tn1)#accurancy
-    fpr_train, tpr_train, thresholds_train =roc_curve(res_train[:,0],res_train[:,1])
-    print('bacc_train:',bacc_train)
-    print('pre_train:',pre_train)
-    print('rec_train:',rec_train)
-    print('f1_train:',f1_train)
-    print('mcc_train:',mcc_train)
-    print('sp_train:',sp_train)
-    print('q__train:',q__train)
-    print('acc_train:',acc_train)
-    
- 
-    '''    
-    res_dev  = dev_res.T
-    cn_matrix=confusion_matrix(res_dev[:,0], res_dev[:,1])
-    cn_matrix
-    
-    tn2 = cn_matrix[0,0]
-    tp2 = cn_matrix[1,1]
-    fn2 = cn_matrix[1,0]
-    fp2 = cn_matrix[0,1]
-
-   
-    bacc_dev = ((tp2/(tp2+fn2))+(tn2/(tn2+fp2)))/2#balance accurance
-    pre_dev= tp2/(tp2+fp2)#precision/q+
-    rec_dev = tp2/(tp2+fn2)#recall/se
-    sp_dev=tn2/(tn2+fp2)
-    q__dev=tn2/(tn2+fn2)
-    f1_dev = 2*pre_dev*rec_dev/(pre_dev+rec_dev)#f1score
-    mcc_dev = ((tp2*tn2) - (fp2*fn2))/math.sqrt((tp2+fp2)*(tp2+fn2)*(tn2+fp2)*(tn2+fn2))#Matthews correlation coefficient
-    acc_dev=(tp2+tn2)/(tp2+fp2+fn2+tn2)#accurancy
-    fpr_dev, tpr_dev, thresholds_dev =roc_curve(res_dev[:,0],res_dev[:,1])
-    print('bacc_dev:',bacc_dev)
-    print('pre_dev:',pre_dev)
-    print('rec_dev:',rec_dev)
-    print('f1_dev:',f1_dev)
-    print('mcc_dev:',mcc_dev)
-    print('sp_dev:',sp_dev)
-    print('q__dev:',q__dev)
-    print('acc_dev:',acc_dev)
-  
-    '''  
-   
-    cnf_matrix=confusion_matrix(res_test[:,0], res_test[:,1])
-    cnf_matrix
-    
-    tn = cnf_matrix[0,0]
-    tp = cnf_matrix[1,1]
-    fn = cnf_matrix[1,0]
-    fp = cnf_matrix[0,1]
-    
-    bacc = ((tp/(tp+fn))+(tn/(tn+fp)))/2#balance accurance
-    pre = tp/(tp+fp)#precision/q+
-    rec = tp/(tp+fn)#recall/se
-    sp=tn/(tn+fp)
-    q_=tn/(tn+fn)
-    f1 = 2*pre*rec/(pre+rec)#f1score
-    mcc = ((tp*tn) - (fp*fn))/math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))#Matthews correlation coefficient
-    acc=(tp+tn)/(tp+fp+fn+tn)#accurancy
-    fpr, tpr, thresholds =roc_curve(res_test[:,0], res_test[:,1])
-    print('bacc:',bacc)
-    print('pre:',pre)
-    print('rec:',rec)
-    print('f1:',f1)
-    print('mcc:',mcc)
-    print('sp:',sp)
-    print('q_:',q_)
-    print('acc:',acc)
-    print('auc:',prediction_test)
-  

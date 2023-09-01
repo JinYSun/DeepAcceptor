@@ -646,7 +646,7 @@ def gen_adj(shape,edges,length):
     
     adj=edges
     e = shape
-    ones = np.eye(e)
+    ones = np.zeros([e,e])
 
     #for i in range(e):
     for i in range (len(length)):
@@ -659,7 +659,7 @@ def gen_adj(shape,edges,length):
 if __name__ == "__main__":
     import pandas as pd 
     from tqdm import tqdm
-    f = pd.read_csv (r"train.csv")
+    f = pd.read_csv (r"data/reg/train3.csv")
     re = []
     pce = f['PCE']
     for ind,smile in enumerate ( f.iloc[:,1]):
@@ -671,7 +671,7 @@ if __name__ == "__main__":
     r.to_csv('data/reg/train/train.csv')
     re = []
 
-    f = pd.read_csv(r'test.csv')
+    f = pd.read_csv(r'data/reg/test3.csv')
     re = []
     pce = f['PCE']
    

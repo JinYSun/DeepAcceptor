@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import os
 from pathlib import Path
@@ -28,6 +26,7 @@ class QuantumDeepField(nn.Module):
         self.W_functional = nn.ModuleList([nn.Linear(dim, dim)
                                            for _ in range(layer_functional)])
         self.W_property = nn.Linear(dim, N_output)
+       # self.W_funct = nn.Linear(dim, dim)
         self.W_density = nn.Linear(1, hidden_HK)
         self.W_HK = nn.ModuleList([nn.Linear(hidden_HK, hidden_HK)
                                    for _ in range(layer_HK)])
@@ -126,6 +125,7 @@ class QuantumDeepField(nn.Module):
         """DNN-based energy functional."""
         for l in range(layers):
             vectors = torch.relu(self.W_functional[l](vectors))
+       
         if operation == 'sum':
             vectors = [torch.sum(vs, 0) for vs in torch.split(vectors, axis)]
         if operation == 'mean':
@@ -137,6 +137,7 @@ class QuantumDeepField(nn.Module):
         vectors = self.W_density(scalars)
         for l in range(layers):
             vectors = torch.relu(self.W_HK[l](vectors))
+       
         return self.W_potential(vectors)
 
     def forward(self, data, train=False, target=None, predict=False):
@@ -149,6 +150,7 @@ class QuantumDeepField(nn.Module):
         if predict:  # For demo.
             with torch.no_grad():
                 molecular_orbitals = self.LCAO(inputs)
+                
                 final_layer = self.functional(molecular_orbitals,
                                               self.layer_functional,
                                               self.operation, N_fields)
@@ -157,19 +159,27 @@ class QuantumDeepField(nn.Module):
 
         elif train:
             molecular_orbitals = self.LCAO(inputs)
+            
             if target == 'E':  # Supervised learning for energy.
                 E = self.list_to_batch(data[6], cat=True, axis=0)  # Correct E.
                 final_layer = self.functional(molecular_orbitals,
                                               self.layer_functional,
                                               self.operation, N_fields)
-                E_ = self.W_property(final_layer)  # Predicted E.
-                loss = F.mse_loss(E, E_)
+               
+                E_ = (self.W_property(final_layer) ) # Predicted E.
+               # torch.cuda.empty_cache()
+                
+                loss =F.mse_loss(E, E_)
             if target == 'V':  # Unsupervised learning for potential.
                 V = self.list_to_batch(data[7], cat=True, axis=0)  # Correct V.
                 densities = torch.sum(molecular_orbitals**2, 1)
                 densities = torch.unsqueeze(densities, 1)
+                
                 V_ = self.HKmap(densities, self.layer_HK)  # Predicted V.
-                loss = F.mse_loss(V, V_)
+                #aa=nn.SmoothL1Loss()
+                loss =F.mse_loss(V, V_)
+                
+                torch.cuda.empty_cache()
             return loss
 
         else:  # Test.
@@ -186,7 +196,7 @@ class QuantumDeepField(nn.Module):
 class Trainer(object):
     def __init__(self, model, lr, lr_decay, step_size):
         self.model = model
-        self.optimizer = optim.Adam(self.model.parameters(), lr)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr)
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer,
                                                    step_size, lr_decay)
 
@@ -245,7 +255,7 @@ class Tester(object):
             E = ','.join([str(e) for e in E])
             E_ = ','.join([str(e) for e in E_])
             prediction += '\t'.join([idx, E, E_, error]) + '\n'
-
+        torch.cuda.empty_cache()
         return MAE, prediction
 
     def save_result(self, result, filename):
@@ -264,13 +274,16 @@ class MyDataset(torch.utils.data.Dataset):
     def __init__(self, directory):
         self.directory = directory
         paths = sorted(Path(self.directory).iterdir(), key=os.path.getmtime)
+        
         self.files = [str(p).strip().split('/')[-1] for p in paths]
 
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, idx):
-        return np.load(self.directory + self.files[idx], allow_pickle=True)
+        
+        return np.load(self.files[idx], allow_pickle=True)
+        
 
 
 def mydataloader(dataset, batch_size, num_workers, shuffle=False):
@@ -281,50 +294,41 @@ def mydataloader(dataset, batch_size, num_workers, shuffle=False):
 
 
 if __name__ == "__main__":
+    dataset=''
+    basis_set='6-31G'
+    radius=0.75
+    grid_interval=0.3
+    
+    # Setting of a neural network architecture.
+    dim=250  # To improve performance, enlarge the dimensions.
+    layer_functional=4
+    hidden_HK=250
+    layer_HK=3
+    
+    # Operation for final layer.
+    #operation='sum'  # For energy (.e., a property proportional to the molecular size).
+    operation='sum'  # For homo and lumo (i.e., a property unrelated to the molecular size or the unit is e.g., eV/atom).i
+    
+    # Setting of optimization.
+    batch_size=4
+    lr=1e-4
+    lr_decay=0.8
+    step_size=25
+    iteration=200
+    
+    
+    # num_workers=0
+    num_workers=0
 
-    """Args."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('dataset')
-    parser.add_argument('basis_set')
-    parser.add_argument('radius')
-    parser.add_argument('grid_interval')
-    parser.add_argument('dim', type=int)
-    parser.add_argument('layer_functional', type=int)
-    parser.add_argument('hidden_HK', type=int)
-    parser.add_argument('layer_HK', type=int)
-    parser.add_argument('operation')
-    parser.add_argument('batch_size', type=int)
-    parser.add_argument('lr', type=float)
-    parser.add_argument('lr_decay', type=float)
-    parser.add_argument('step_size', type=int)
-    parser.add_argument('iteration', type=int)
-    parser.add_argument('setting')
-    parser.add_argument('num_workers', type=int)
-    args = parser.parse_args()
-    dataset = args.dataset
     unit = '(' + dataset.split('_')[-1] + ')'
-    basis_set = args.basis_set
-    radius = args.radius
-    grid_interval = args.grid_interval
-    dim = args.dim
-    layer_functional = args.layer_functional
-    hidden_HK = args.hidden_HK
-    layer_HK = args.layer_HK
-    operation = args.operation
-    batch_size = args.batch_size
-    lr = args.lr
-    lr_decay = args.lr_decay
-    step_size = args.step_size
-    iteration = args.iteration
-    setting = args.setting
-    num_workers = args.num_workers
+    setting=dataset+'+'+basis_set
 
     """Fix the random seed (with the taxicab number)."""
-    torch.manual_seed(1729)
-
+    torch.manual_seed(111)
+    
     """GPU or CPU."""
     if torch.cuda.is_available():
-        device = torch.device('cuda')
+        device = torch.device('cpu')
         print('The code uses a GPU.')
     else:
         device = torch.device('cpu')
@@ -333,16 +337,17 @@ if __name__ == "__main__":
 
     """Create the dataloaders of training, val, and test set."""
     dir_dataset = '../dataset/' + dataset + '/'
-    field = '_'.join([basis_set, radius + 'sphere', grid_interval + 'grid/'])
-    dataset_train = MyDataset(dir_dataset + 'train_' + field)
-    dataset_val = MyDataset(dir_dataset + 'val_' + field)
-    dataset_test = MyDataset(dir_dataset + 'test_' + field)
+    field = '_'.join([basis_set, str(radius) + 'sphere', str(grid_interval) + 'grid/'])
+    dataset_train = MyDataset(dir_dataset + 'train3_' + field)
+
+   
     dataloader_train = mydataloader(dataset_train, batch_size, num_workers,
                                     shuffle=True)
-    dataloader_val = mydataloader(dataset_val, batch_size, num_workers)
-    dataloader_test = mydataloader(dataset_test, batch_size, num_workers)
+    
+    dataset_test = MyDataset(dir_dataset + 'test3_' + field)
+    dataloader_test = mydataloader(dataset_test, batch_size, num_workers,shuffle=True)
     print('# of training samples: ', len(dataset_train))
-    print('# of validation samples: ', len(dataset_val))
+   
     print('# of test samples: ', len(dataset_test))
     print('-'*50)
 
@@ -355,14 +360,18 @@ if __name__ == "__main__":
     When we learn only the atomization energy, N_output=1;
     when we learn the HOMO and LUMO simultaneously, N_output=2.
     """
-    N_output = len(dataset_test[0][-2][0])
+    N_output = 1
 
     print('Set a QDF model.')
     model = QuantumDeepField(device, N_orbitals,
                              dim, layer_functional, operation, N_output,
                              hidden_HK, layer_HK).to(device)
+                                  
+   
+    #     para.requires_grad = False
     trainer = Trainer(model, lr, lr_decay, step_size)
     tester = Tester(model)
+
     print('# of model parameters:',
           sum([np.prod(p.size()) for p in model.parameters()]))
     print('-'*50)
@@ -386,7 +395,7 @@ if __name__ == "__main__":
 
     for epoch in range(iteration):
         loss_E, loss_V = trainer.train(dataloader_train)
-        MAE_val = tester.test(dataloader_val)[0]
+      #  MAE_val = tester.test(dataloader_val)[0]
         MAE_test, prediction = tester.test(dataloader_test)
         time = timeit.default_timer() - start
 
@@ -400,7 +409,7 @@ if __name__ == "__main__":
             print(result)
 
         result = '\t'.join(map(str, [epoch, time, loss_E, loss_V,
-                                     MAE_val, MAE_test]))
+                                     MAE_test]))
         tester.save_result(result, file_result)
         tester.save_prediction(prediction, file_prediction)
         tester.save_model(model, file_model)

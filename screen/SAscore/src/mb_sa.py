@@ -96,4 +96,4 @@ def main(task_name):
 
 if __name__ == '__main__':
     import sys
-    main(r"J:\screenacc\exe.smi")
+    main(r"J:\screenacc\exe/exe.smi")

@@ -153,7 +153,7 @@ def getf(mol,progs=["rdkit"]):
 
 if __name__ == "__main__":
     from tqdm import tqdm
-    file = pd.read_csv(r"J:\screenacc\high.csv",header=None)
+    file = pd.read_csv(r"J:\screenacc\exe\new.csv",header=None)
     fi = file.iloc[1:,1]
     f = []
     res = pd.DataFrame()
@@ -163,30 +163,30 @@ if __name__ == "__main__":
           try:
               a = getf(mol)
               b=a['rdkit']
-              f.append(b)
+              if b['MolLogP']<80 and b['MolLogP']>12.72: #and b['MolLogP']>8.76 
+                  if b['MolWt']<4000 and b['MolWt']>800: #and b['MolWt']>485
+                      if b['NOCount']<25 :
+                          if    b['NumHAcceptors']<32  and b['NumHAcceptors']>6:
+                            if  b['NumHDonors']<2:
+                             # if    b['NumHeteroatoms']<29.4 and b['NumHeteroatoms']>7.6: #and b['NumHeteroatoms']>5.7
+                                #if      b['NumRadicalElectrons']<7:
+                                  if         b['NumRotatableBonds']>15 : #b['NumRotatableBonds']<96.6 and
+                        
+                                      if            b['RingCount']<40 and b['RingCount']>6:
+                                  #      if              b['NumAromaticHeterocycles']<10.5  :
+                                          if                b['NumAromaticRings']<22 :
+                                                    if 'Si' not in smi:      
+                                                      if 'P' not in smi:
+                                                                  print(ind)
           except:
               b=[]
           # a=pd.DataFrame(a)
           # res = pd.concat([a,res],axis=1)
            
-          f.append(b)
-          if b['MolLogP']<80 and b['MolLogP']>12.72: #and b['MolLogP']>8.76 
-              if b['MolWt']<4000 and b['MolWt']>800: #and b['MolWt']>485
-                  if b['NOCount']<25 :
-                      if    b['NumHAcceptors']<32  and b['NumHAcceptors']>6:
-                        if  b['NumHDonors']<2:
-                         # if    b['NumHeteroatoms']<29.4 and b['NumHeteroatoms']>7.6: #and b['NumHeteroatoms']>5.7
-                            #if      b['NumRadicalElectrons']<7:
-                              if         b['NumRotatableBonds']>15 : #b['NumRotatableBonds']<96.6 and
-                    
-                                  if            b['RingCount']<40 and b['RingCount']>6:
-                              #      if              b['NumAromaticHeterocycles']<10.5  :
-                                      if                b['NumAromaticRings']<22 :
-                                                      
-                                                  if 'P' not in smi:
-                                                              print(ind)
+          
+          
                                                               # file.iloc[ind,:]
-                                                              f.append(b)
+          f.append(b)
                                                          
     res= pd.DataFrame(f)
     #res = pd.concat([file,f1],axis=1)

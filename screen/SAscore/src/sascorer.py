@@ -124,7 +124,7 @@ if __name__=='__main__':
   readFragmentScores("fpscores")
   t2=time.time()
 
-  suppl = Chem.SmilesMolSupplier(r"J:\screenacc\exe.smi")
+  suppl = Chem.SmilesMolSupplier(r"J:\screenacc\exe/exe.txt")
   t3=time.time()
   s = processMols(suppl)
   s= pd.DataFrame(s)

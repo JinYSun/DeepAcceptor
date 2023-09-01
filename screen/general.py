@@ -11,8 +11,8 @@ import pandas as pd
 from rdkit import rdBase, Chem
 from rdkit.Chem import AllChem, Draw, BRICS, Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
-data=pd.read_csv(r"J:\screenacc\high.csv",encoding='ISO-8859-1')
-data = (data.iloc[:,1])
+data=pd.read_csv(r"H:\library\NFA-BERT\screen\high.csv",encoding='ISO-8859-1')
+data = (data.iloc[:67,0])
 
 mols_list=np.array([Chem.MolFromSmiles(mol) for mol in data if mol is not None])
 
@@ -27,16 +27,18 @@ fragment_smiles = list(fragment_set)
  
 frag_1dummy_s = [smiles for smiles in fragment_smiles  if smiles.count('*')==1 ]
 frag_2dummy_s = [smiles for smiles in fragment_smiles if smiles.count('*')==2]
-frag_1dummy = np.array([Chem.MolFromSmiles(smiles) for smiles in frag_1dummy_s])
-frag_2dummy = np.array([Chem.MolFromSmiles(smiles) for smiles in frag_2dummy_s])
+frag_1dummy1 = np.array([Chem.MolFromSmiles(smiles) for smiles in frag_1dummy_s])
+frag_2dummy1 = np.array([Chem.MolFromSmiles(smiles) for smiles in frag_2dummy_s])
  
 descriptor_calc = MoleculeDescriptors.MolecularDescriptorCalculator(['MolWt'])
-MolWt_list1 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_1dummy])
-frag_1dummy = frag_1dummy[np.where((MolWt_list1<=1000 ) & ( MolWt_list1>=50) )]
+MolWt_list1 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_1dummy1])
+frag_1dummy = frag_1dummy1[np.where((MolWt_list1<=200 ) & ( MolWt_list1>=50) )]
+frag_2dummy = frag_1dummy1[np.where((MolWt_list1>=300) & (MolWt_list1<=800 ))]
 
 descriptor_calc = MoleculeDescriptors.MolecularDescriptorCalculator(['MolWt'])
-MolWt_list2 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_2dummy])
-frag_2dummy = frag_2dummy[np.where((MolWt_list2<=500) & ( MolWt_list2>=50) )]
+MolWt_list2 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_2dummy1])
+frag_3dummy = frag_2dummy1[np.where((MolWt_list2<=200 ) & ( MolWt_list2>=50) )]
+frag_4dummy = frag_2dummy1[np.where((MolWt_list2>=500) & (MolWt_list2<=800 ))]
 
 print('number of fragment:',len(frag_1dummy))
 #>>> number of fragment: 333
@@ -58,7 +60,7 @@ node_type = [node for node in decomp.children.values()]
 print(node_type)
 Draw.MolsToGridImage(first_gen, molsPerRow=4, legends=[Chem.MolToSmiles(m) for m in first_gen])
 
-def structure_generator(main_mol, fragment1, fragment2, r_position=1):
+def structure_generator(main_mol, fragment1,  r_position=0):
  
     """
     parameters
@@ -123,7 +125,7 @@ def structure_generator(main_mol, fragment1, fragment2, r_position=1):
     generated_molecule_atoms = level1_atoms[:]
     generated_adjacency_matrix = level1_adjacency_matrix.copy()
  
-    frag_permutations = list(itertools.permutations([main_mol, fragment2]))
+    frag_permutations = list(itertools.permutations([main_mol]))
     fragment_list = frag_permutations[r_position]
  
     for r_number_in_molecule, fragment_molecule in enumerate(fragment_list):  
@@ -205,18 +207,22 @@ smiles= []
 # dic={"SMILES":smiles}
 #DataFrame(dic).to_csv('E:\code\compute/results/Genxyz.csv') 
           
-for i in range (len(frag_1dummy)) :
-    main_mol = frag_1dummy[i]
-    for j in range(len (frag_2dummy)):
-        fragment2 = frag_2dummy[j]
-        for k in range (len(frag_2dummy)):
-            fragment1 = frag_2dummy[k]
-            mol = structure_generator(fragment2,fragment1,main_mol )
-            mol = structure_generator(main_mol,fragment1,mol)
-            smile = Chem.MolToSmiles(mol)
-            smiles.append(smile)
+for i in range (len(frag_4dummy)) :
+    fragment4 = frag_4dummy[i]
+    for j in range(len (frag_3dummy)):
+        fragment3 = frag_3dummy[j]
+        for k in range (len(frag_1dummy)):
+            fragment1 = frag_1dummy[k]
+            for l in range(len(frag_2dummy)):
+                    fragment2 = frag_2dummy[l]
+                    mol = structure_generator(fragment4,fragment1 )
+                    
+                    mol1 = structure_generator(fragment3, mol)
+                    mol = structure_generator(fragment2,mol1)
+                    smile = Chem.MolToSmiles(mol)
+                    smiles.append(smile)
 dic={"SMILES":smiles}
-DataFrame(dic).to_csv(r"J:\screenacc\gen1.csv")
+DataFrame(dic).to_csv(r"J:\screenacc\exe\new.csv")
 
 '''
 main_mol = frag_1dummy[168]
@@ -225,9 +231,9 @@ fragment2 = frag_1dummy[5]
 fragment3 = frag_2dummy[50]
 mol = structure_generator(fragment1, fragment3,main_mol)
 mol = structure_generator(main_mol, fragment3, mol)
-img3 = Draw.MolsToGridImage([main_mol, fragment1, fragment3, mol],
+img3 = Draw.MolsToGridImage([fragment4, fragment1, fragment2, mol],
                            molsPerRow=4,
-                           legends=['main_mol','fragment1','fragment2','generated_molecule'])
+                           legends=['fragment4','fragment1','fragment2','generated_molecule'])
 img3
 
 '''

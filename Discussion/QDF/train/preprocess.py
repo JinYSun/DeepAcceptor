@@ -105,7 +105,7 @@ def create_dataset(dir_dataset, filename, basis_set,
         """Index of the molecular data."""
         data = data.strip().split('\n')
         idx = data[0]
-
+        print(idx)
         """Multiple properties (e.g., homo and lumo) can also be processed
         at a time (i.e., the model output has two dimensions).
         """
@@ -128,12 +128,15 @@ def create_dataset(dir_dataset, filename, basis_set,
         for atom_xyz in atom_xyzs:
             atom, x, y, z = atom_xyz.split()
             atoms.append(atom)
-            atomic_number = atomicnumber_dict[atom]
-            atomic_numbers.append([atomic_number])
-            N_electrons += atomic_number
-            xyz = [float(v) for v in [x, y, z]]
-            atomic_coords.append(xyz)
-
+            try:
+                atomic_number = atomicnumber_dict[atom]
+    
+                atomic_numbers.append([atomic_number])
+                N_electrons += atomic_number
+                xyz = [float(v) for v in [x, y, z]]
+                atomic_coords.append(xyz)
+            except:
+                continue
             """Atomic orbitals (basis functions)
             and principle quantum numbers (q=1,2,...).
             """
@@ -171,24 +174,36 @@ def create_dataset(dir_dataset, filename, basis_set,
         if property:
             data += [property_values.astype(np.float32),
                      potential.astype(np.float32)]
-
         data = np.array(data, dtype=object)
         np.save(dir_preprocess + idx, data)
 
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+   # dataset='QM9under7atoms_atomizationenergy_eV'
+# dataset=QM9under14atoms_atomizationenergy_eV
+# dataset=QM9full_atomizationenergy_eV
+# dataset=QM9under7atoms_homolumo_eV  # Two properties (homo and lumo).
+# dataset=QM9full_homolumo_eV
+    dataset=''
+
+# Basis set.
+    basis_set='6-31G'
+
+# Grid field.
+    radius=0.75
+    grid_interval=0.3
     """Args."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('dataset')
-    parser.add_argument('basis_set')
-    parser.add_argument('radius', type=float)
-    parser.add_argument('grid_interval', type=float)
-    args = parser.parse_args()
-    dataset = args.dataset
-    basis_set = args.basis_set
-    radius = args.radius
-    grid_interval = args.grid_interval
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('dataset')
+    # parser.add_argument('basis_set')
+    # parser.add_argument('radius', type=float)
+    # parser.add_argument('grid_interval', type=float)
+    # args = parser.parse_args()
+    # dataset = args.dataset
+    # basis_set = args.basis_set
+    # radius = args.radius
+    # grid_interval = args.grid_interval
 
     """Dataset directory."""
     dir_dataset = '../dataset/' + dataset + '/'
@@ -206,21 +221,31 @@ if __name__ == "__main__":
     print('-'*50)
 
     print('Training dataset...')
-    create_dataset(dir_dataset, 'train',
+    create_dataset(dir_dataset, 'train3',
                    basis_set, radius, grid_interval, orbital_dict)
     print('-'*50)
 
     print('Validation dataset...')
-    create_dataset(dir_dataset, 'val',
+    create_dataset(dir_dataset, 'test3',
                    basis_set, radius, grid_interval, orbital_dict)
     print('-'*50)
 
-    print('Test dataset...')
-    create_dataset(dir_dataset, 'test',
-                   basis_set, radius, grid_interval, orbital_dict)
-    print('-'*50)
+    # print('Test dataset...')
+    # create_dataset(dir_dataset, 'test00',
+    #                basis_set, radius, grid_interval, orbital_dict)
+    # print('-'*50)
+    # create_dataset(dir_dataset, 'train1',
+    #                basis_set, radius, grid_interval, orbital_dict)
+    # print('-'*50)
 
+    # print('Test dataset...')
+    # create_dataset(dir_dataset, 'test1',
+    #                basis_set, radius, grid_interval, orbital_dict)
+    # create_dataset(dir_dataset, 'val1',
+    #                basis_set, radius, grid_interval, orbital_dict)
+    # print('-'*50)
+    print('-'*50)
     with open(dir_dataset + 'orbitaldict_' + basis_set + '.pickle', 'wb') as f:
         pickle.dump(dict(orbital_dict), f)
-
+    
     print('The preprocess has finished.')

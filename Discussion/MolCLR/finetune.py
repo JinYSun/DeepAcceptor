@@ -73,7 +73,7 @@ class FineTune(object):
         if config['dataset']['task'] == 'classification':
             self.criterion = nn.CrossEntropyLoss()
         elif config['dataset']['task'] == 'regression':
-            if self.config["task_name"] in ['qm7', 'qm8', 'data','SMRT']:
+            if self.config["task_name"] in ['qm7', 'qm8']:
                 self.criterion = nn.L1Loss()
             else:
                 self.criterion = nn.MSELoss()
@@ -242,8 +242,16 @@ class FineTune(object):
             predictions = np.array(list(predictions))
             labels = np.array(labels)
             results=np.vstack((labels,predictions))
-            if self.config['task_name'] in ['qm7', 'qm8', 'data','SMRT']:
+            if self.config['task_name'] in ['qm7', 'qm8','OSC']:
                 r2 = r2_score(labels, predictions)
+                mae = median_absolute_error(labels, predictions)
+                if mae>1.78 and mae<2:
+                    
+                    r2=r2_score(labels, predictions)
+                    mse = mean_squared_error(labels, predictions)
+                    
+                    r=pearsonr(labels, predictions)[0]
+                    print(labels,predictions,mae,r2,mse,r)
                 print('Validation loss:', valid_loss, 'r2:', r2)
                 return valid_loss, r2,results
             else:
@@ -294,7 +302,7 @@ class FineTune(object):
             
             labels = np.array(labels)
             results=np.vstack((labels,predictions))            
-            if self.config['task_name'] in ['qm7', 'qm8', 'data','SMRT']:
+            if self.config['task_name'] in ['qm7', 'qm8', 'OSC','SMRT']:
                 self.mae = mean_absolute_error(labels, predictions)
                 self.results=results
                 print('Test loss:', test_loss, 'Test MAE:', self.mae)
@@ -312,7 +320,7 @@ def main(config):
     if config['dataset']['task'] == 'classification':
         return fine_tune.roc_auc
     if config['dataset']['task'] == 'regression':
-        if config['task_name'] in ['qm7', 'qm8', 'data','SMRT']:
+        if config['task_name'] in ['qm7', 'qm8', 'OSC','SMRT']:
             return fine_tune.mae, fine_tune.results
         else:
             return fine_tune.rmse
@@ -359,10 +367,10 @@ if __name__ == "__main__":
         config['dataset']['data_path'] = 'data/bbbp/BBBP.csv'
         target_list = ["p_np"]
     
-    elif config["task_name"] == 'SMRT':
+    elif config["task_name"] == 'OSC':
         config['dataset']['task'] = 'regression'
-        config['dataset']['data_path'] = 'data/SMRT.csv'
-        target_list = ['RT']
+        config['dataset']['data_path'] = ['data/train3.csv','data/test3.csv']
+        target_list = ['PCE']
 
     else:
         raise ValueError('Undefined downstream task!')

@@ -1,5 +1,5 @@
 batch_size: 100   # batch size
-epochs: 500           # total number of epochs
+epochs: 2000           # total number of epochs
 eval_every_n_epochs: 1          # validation frequency
 fine_tune_from: pretrained_gin  # sub directory of pre-trained model in ./ckpt
 log_every_n_steps: 50           # print training log frequency
@@ -8,7 +8,7 @@ init_lr: 0.0001               # initial learning rate for the prediction head
 init_base_lr: 0.0005            # initial learning rate for the base GNN encoder
 weight_decay: 0.00005             # weight decay of Adam
 gpu: cuda:0                     # training GPU
-task_name: SMRT   # name of fine-tuning benchmark, inlcuding
+task_name: OSC # name of fine-tuning benchmark, inlcuding
                                 # classifications: BBBP/BACE/ClinTox/Tox21/HIV/SIDER/MUV
                                 # regressions: FreeSolv/ESOL/Lipo/qm7/qm8/qm9
 
