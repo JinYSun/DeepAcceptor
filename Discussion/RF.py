@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 27 22:08:23 2021
-
-@author: BM109X32G-10GPU-02
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 15 13:46:29 2020
-
-@author: de''
-"""
 
 # -*- coding: utf-8 -*-
 """
@@ -174,8 +161,8 @@ def edit_dataset(drug,non_drug,task):
   #  dataset_dev = dataset_dev_drug+dataset_dev_no
     return dataset_train, dataset_test
 if __name__ == "__main__":
-    data_train= pd.read_csv(r"H:\library\NFA-BERT\Discussion\MolCLR\data\train3.csv")
-    data_test=pd.read_csv(r"H:\library\NFA-BERT\Discussion\MolCLR\data\test3.csv")
+    data_train= pd.read_csv(r"H:\library\NFA-BERT\abcBERT\data\train3.csv")
+    data_test=pd.read_csv(r"H:\library\NFA-BERT\abcBERT\data\test3.csv")
     inchis = list(data_train['SMILES'])
     rts = list(data_train['PCE'])
     
@@ -243,7 +230,11 @@ if __name__ == "__main__":
     
 #    X_train,Y_train = make_blobs(n_samples=300, n_features=n_features, centers=6)
     model.fit(X_train, Y_train)
+    import pickle
+    pickle.dump(model,open("model.dat","wb"))   # open("dtr.dat","wb")意思是打开叫"dtr.dat"的文件,操作方式是写入二进制数据
 
+# 加载模型 
+    loaded_model = pickle.load(open("dtr.dat","rb"))
     
  #   model = load_model('C:/Users/sunjinyu/Desktop/FingerID Reference/drug-likeness/CNN/single_model.h5')
     Y_predict = model.predict(K.cast_to_floatx(X_test).reshape((np.size(X_test,0),np.size(X_test,1)*np.size(X_test,2))))
