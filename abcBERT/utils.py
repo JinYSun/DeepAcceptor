@@ -646,12 +646,12 @@ def gen_adj(shape,edges,length):
     
     adj=edges
     e = shape
-    ones = np.zeros([e,e])
+    ones = np.eye(e)
 
     #for i in range(e):
     for i in range (len(length)):
         if adj[i,0] != adj[i,1]:
-            ones[adj[i,0],adj[i,1]]=format(float(length[i] ), '.3f')
+            ones[adj[i,0],adj[i,1]]=(float(length[i] ))
                    
     return ones
 

@@ -124,12 +124,12 @@ if __name__=='__main__':
   readFragmentScores("fpscores")
   t2=time.time()
 
-  suppl = Chem.SmilesMolSupplier(r"J:\screenacc\exe/exe.txt")
+  suppl = Chem.SmilesMolSupplier(r"screen1.txt")
   t3=time.time()
   s = processMols(suppl)
   s= pd.DataFrame(s)
   t4=time.time()
-#  s.to_csv(r"J:\screenacc\genscreennew22.csv")
+  s.to_csv(r"screen2.csv")
   #print('Reading took %.2f seconds. Calculating took %.2f seconds'%((t2-t1),(t4-t3)), file=sys.stderr)
 
   

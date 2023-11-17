@@ -11,8 +11,8 @@ import pandas as pd
 from rdkit import rdBase, Chem
 from rdkit.Chem import AllChem, Draw, BRICS, Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
-data=pd.read_csv(r"H:\library\NFA-BERT\screen\high.csv",encoding='ISO-8859-1')
-data = (data.iloc[:67,0])
+data=pd.read_csv(r"high.csv",encoding='ISO-8859-1')
+data = (data.iloc[:,0])
 
 mols_list=np.array([Chem.MolFromSmiles(mol) for mol in data if mol is not None])
 
@@ -50,10 +50,10 @@ from rdkit.Chem import AllChem, Draw
 from rdkit.Chem import Recap
 
 sm =data[1]
-#sm = celecoxib.canonical_smiles#转换成smiles
-celecoxib = Chem.MolFromSmiles(sm)#转换成mol
-decomp = Chem.Recap.RecapDecompose(celecoxib)#碎片化
-print(type(decomp))#碎片化后是一个特殊的数据类型
+#sm = celecoxib.canonical_smiles
+celecoxib = Chem.MolFromSmiles(sm)
+decomp = Chem.Recap.RecapDecompose(celecoxib)
+print(type(decomp))
 first_gen = [node.mol for node in decomp.children.values()]
 print(first_gen)
 node_type = [node for node in decomp.children.values()]
@@ -195,17 +195,7 @@ def structure_generator(main_mol, fragment1,  r_position=0):
     return generated_molecule
 
 smiles= []
-# for i in range (len(frag_1dummy)) :
-#     main_mol = frag_1dummy[i]
-#     for j in range(len (frag_1dummy)):
-#         fragment2 = frag_1dummy[j]
-#         for k in range (len(frag_2dummy)):
-#             fragment1 = frag_2dummy[k]
-#             mol = structure_generator(fragment2,fragment1,main_mol )
-#             smile = Chem.MolToSmiles(mol)
-#             smiles.append(smile)
-# dic={"SMILES":smiles}
-#DataFrame(dic).to_csv('E:\code\compute/results/Genxyz.csv') 
+
           
 for i in range (len(frag_4dummy)) :
     fragment4 = frag_4dummy[i]
@@ -222,7 +212,7 @@ for i in range (len(frag_4dummy)) :
                     smile = Chem.MolToSmiles(mol)
                     smiles.append(smile)
 dic={"SMILES":smiles}
-DataFrame(dic).to_csv(r"J:\screenacc\exe\new.csv")
+DataFrame(dic).to_csv(r"brics.csv")
 
 '''
 main_mol = frag_1dummy[168]

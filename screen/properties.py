@@ -1,21 +1,9 @@
+# -*- coding: utf-8 -*-
 """
-This code is used to extract molecular descriptors using rdkit or CDKDesc from molecule SMILES.
+Created on Mon Mar 29 17:15:26 2021
 
-Library versions:
-
-Python 2.7.13
-rdkit.__version__ = '2017.09.1'
+@author: Jinyu Sun
 """
-
-__author__ = "Robbin Bouwmeester"
-__copyright__ = "Copyright 2017"
-__credits__ = ["Robbin Bouwmeester","Prof. Lennart Martens","Sven Degroeve"]
-__license__ = "Apache License, Version 2.0"
-__version__ = "1.0"
-__maintainer__ = "Robbin Bouwmeester"
-__email__ = "Robbin.bouwmeester@ugent.be"
-
-# Native imports
 from subprocess import Popen
 from subprocess import PIPE
 from os import remove
@@ -153,7 +141,7 @@ def getf(mol,progs=["rdkit"]):
 
 if __name__ == "__main__":
     from tqdm import tqdm
-    file = pd.read_csv(r"J:\screenacc\exe\new.csv",header=None)
+    file = pd.read_csv(r"gen.csv",header=None)
     fi = file.iloc[1:,1]
     f = []
     res = pd.DataFrame()
@@ -189,14 +177,5 @@ if __name__ == "__main__":
           f.append(b)
                                                          
     res= pd.DataFrame(f)
-    #res = pd.concat([file,f1],axis=1)
-   # res.to_csv(r"J:\screenacc\4.csv")
-    # corrdf = res.corr()
-    # import seaborn as sns
-    # import matplotlib.pyplot as plt
-    # corrdf
-    # plt.subplots(figsize=(9, 9)) # 设置画面大小
-    # sns.heatmap(corrdf,  cmap="Blues")
-   
-    # plt.show()
+    res.to_csv(r"screen1.csv")
 

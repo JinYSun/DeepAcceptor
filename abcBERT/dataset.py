@@ -171,7 +171,7 @@ class predict_smiles(object):
         atoms_list = []
         for i in atom:
             if i not in [' ']:
-                atoms_list.append(i)
+                atoms_list.append(str(i,encoding='utf-8'))
         label = np.array(label)
        
         adj = np.array(adj)
@@ -270,7 +270,10 @@ class Graph_Regression_test(object):
         atoms_list = []
         for i in atom:
             if i not in [' ']:
-                atoms_list.append(i)
+                try:
+                    atoms_list.append(str(i,encoding='utf-8'))
+                except:
+                    atoms_list.append(str(i))
         label = np.array(label)[0]
        
         adj = np.array(adj)[0].decode()
