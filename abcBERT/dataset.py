@@ -34,11 +34,11 @@ class Graph_Bert_Dataset(object):
         data2 = data[~data.index.isin(train_idx)]
        
         self.dataset1 = tf.data.Dataset.from_tensor_slices((data1[self.smiles_field],data1[self.adj]))
-        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).padded_batch(256, padded_shapes=(
+        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).padded_batch(64, padded_shapes=(
             tf.TensorShape([None]),tf.TensorShape([None,None]), tf.TensorShape([None]) ,tf.TensorShape([None]))).prefetch(50)
          
         self.dataset2 = tf.data.Dataset.from_tensor_slices((data2[self.smiles_field],data2[self.adj]))
-        self.dataset2 = self.dataset2.map(self.tf_numerical_smiles).padded_batch(512, padded_shapes=(
+        self.dataset2 = self.dataset2.map(self.tf_numerical_smiles).padded_batch(64, padded_shapes=(
             tf.TensorShape([None]), tf.TensorShape([None, None]), tf.TensorShape([None]),
             tf.TensorShape([None]))).prefetch(50)
         return self.dataset1, self.dataset2
@@ -217,7 +217,7 @@ class predict_smiles(object):
         return x, adjoin_matrix , y 
     
 class Graph_Regression_test(object):
-    def __init__(self,path,smiles_field=['0'],adj = ['1'], label_field=['2'],normalize=False,max_len=1000,addH=True):
+    def __init__(self,path, filename, smiles_field=['0'],adj = ['1'], label_field=['2'],normalize=False,max_len=1000,addH=True):
         if path.endswith('.txt') or path.endswith('.tsv'):
            # self.df = pd.read_csv(path.format('train3'),sep='\t')
             #self.dt = pd.read_csv(path.format('test3'),sep='\t')
@@ -225,7 +225,7 @@ class Graph_Regression_test(object):
         else:
             #self.df = pd.read_csv(path.format('train/train'))
            #self.dt = pd.read_csv(path.format('test/test'))
-            self.dv = pd.read_csv(path.format('val/val'))
+            self.dv = pd.read_csv(path.format(filename))
         self.smiles_field = smiles_field
         self.adj = adj
         self.label_field = label_field
@@ -314,7 +314,7 @@ class Graph_Regression(object):
         else:
             self.df = pd.read_csv(path.format('train/train'))
             self.dt = pd.read_csv(path.format('test/test'))
-            #self.dv = pd.read_csv(path.format('val3'))
+            #self.dv = pd.read_csv(path.format('val/val'))
         self.smiles_field = smiles_field
         self.adj = adj
         self.label_field = label_field

@@ -8,7 +8,8 @@ import tensorflow.keras as keras
 
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-#keras.backend.clear_session()
+os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
+keras.backend.clear_session()
 def main():
     # class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     #     def __init__(self, d_model, warmup_steps=4000):
@@ -30,7 +31,7 @@ def main():
     optimizer = tf.keras.optimizers.Adam(1e-4)
     
     small = {'name': 'Small', 'num_layers': 3, 'num_heads': 4, 'd_model': 128, 'path': 'small_weights','addH':True}
-    medium = {'name': 'Medium', 'num_layers': 8, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights1','addH':True}
+    medium = {'name': 'Medium', 'num_layers': 8, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights','addH':True}
     medium3 = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights3','addH':True}
     large = {'name': 'Large', 'num_layers': 12, 'num_heads': 12, 'd_model': 576, 'path': 'large_weights','addH':True}
     medium_balanced = {'name':'Medium','num_layers': 6, 'num_heads': 8, 'd_model': 256,'path':'weights_balanced','addH':True}

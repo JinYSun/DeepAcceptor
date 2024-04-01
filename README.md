@@ -68,6 +68,13 @@ Then, run the utils.py as follows.
 
 ------
 
+or use the command line as follows
+
+```
+cd abcBERT
+python utils.py
+```
+
 
 
 ## <u>Model training</u>
@@ -78,6 +85,14 @@ Then, run the utils.py as follows.
    import pretrain
    pretrain.main()
    ```
+
+   or use the command line as follows
+
+   ```
+   python pretrain.py
+   ```
+
+   
 
 2. #### Finetune the model
 
@@ -90,7 +105,9 @@ Then, run the utils.py as follows.
 
 ------
 
+or use the command line as follows
 
+`python regression.py`
 
 ## <u>Predicting PCE</u>
 
@@ -98,10 +115,14 @@ The PCE prediction is obtained by feeding the the processed molecules into the a
 
     import predict
     from predict import *
-    result =[]
-    r2_list = []
-    seed = 12
-    r2,prediction_val= main(seed)
+    np.set_printoptions(threshold=sys.maxsize)
+    prediction_val= main('reg/test/test')
+
+or use the command line as follows
+
+```
+python predict.py
+```
 
 **The example codes for usage is included in the [test.ipynb](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/test.ipynb)**
 

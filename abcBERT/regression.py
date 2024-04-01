@@ -19,14 +19,14 @@ from model import  PredictModel,BertModel
 
 
 
-def main(seed):
+def main(seed=24):
     # tasks = ['caco2', 'logD', 'logS', 'PPB', 'tox']
     #os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     keras.backend.clear_session()
     os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     small = {'name': 'Small', 'num_layers': 3, 'num_heads': 4, 'd_model': 128, 'path': 'small_weights','addH':True}
     medium = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights2','addH':True}
-    medium3 = {'name': 'Medium', 'num_layers': 8, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights2',
+    medium3 = {'name': 'Medium', 'num_layers': 8, 'num_heads': 8, 'd_model': 256, 'path': 'medium_weights',
                'addH': True}
     large = {'name': 'Large', 'num_layers': 12, 'num_heads': 12, 'd_model': 576, 'path': 'large_weights','addH':True}
     medium_without_H = {'name': 'Medium', 'num_layers': 6, 'num_heads': 8, 'd_model': 256, 'path': 'weights_without_H','addH':False}
@@ -98,9 +98,9 @@ def main(seed):
     
     value_range = 1
     mse=100
-    r2 = -0.5
+    r2 = -10
     stopping_monitor = 0
-    for epoch in range(200):
+    for epoch in range(100):
         mse_object = tf.keras.metrics.MeanSquaredError()
         for x,adjoin_matrix,y in train_dataset:
             with tf.GradientTape() as tape:

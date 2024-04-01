@@ -4,7 +4,8 @@ Created on Thu Jul 28 14:40:59 2022
 
 @author: BM109X32G-10GPU-02
 """
-
+import pandas as pd 
+from tqdm import tqdm
 import os
 from collections import OrderedDict
 
@@ -655,42 +656,48 @@ def gen_adj(shape,edges,length):
                    
     return ones
 
+def pretrainprocess(filename = 'data/chem.txt'):
 
-if __name__ == "__main__":
-    import pandas as pd 
-    from tqdm import tqdm
-    f = pd.read_csv (r"data/reg/train3.csv")
-    re = []
-    pce = f['PCE']
-    for ind,smile in enumerate ( f.iloc[:,1]):
-        print(ind)
-        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
-        np.save('data/reg/train/adj'+str(ind)+'.npy',np.array(adj))
-        re.append([atom,'data/reg/train/adj'+str(ind)+'.npy',pce[ind] ])
-    r = pd.DataFrame(re)
-    r.to_csv('data/reg/train/train.csv')
-    re = []
-
-    f = pd.read_csv(r'data/reg/test3.csv')
-    re = []
-    pce = f['PCE']
-   
-    for ind,smile in enumerate ( f.iloc[:,1]):
-        print(ind)
-        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
-        np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
-        re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
-    r = pd.DataFrame(re)
-    r.to_csv('data/reg/test/test.csv')
-    
-    f = pd.read_csv(r'val.csv')
-    re = []
-    pce = f['PCE']        
-   
-    for ind,smile in enumerate ( f.iloc[:,1]):
-        print(ind)
-        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
-        np.save('data/reg/val/adj'+str(ind)+'.npy',np.array(adj))
-        re.append([atom,'data/reg/val/adj'+str(ind)+'.npy',pce[ind] ])
-    r = pd.DataFrame(re)
-    r.to_csv('data/reg/val/val.csv')
+        f = pd.read_table (filename)
+        re = []
+        for ind,smile in enumerate ( f.iloc[:,0]):
+            print(ind)
+            atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+            np.save('data//adj/'+str(ind)+'.npy',np.array(adj))
+            re.append([atom,'data/adj/'+str(ind)+'.npy'])
+            r = pd.DataFrame(re)
+            r.to_csv('data/adj/re.csv')
+def process():
+        f = pd.read_csv ('data/train.csv')
+        re = []
+        pce = f['PCE']
+        for ind,smile in enumerate ( f['SMILES']):
+            print(ind)
+            atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+            np.save('data/reg/train/adj'+str(ind)+'.npy',np.array(adj))
+            re.append([atom,'data/reg/train/adj'+str(ind)+'.npy',pce[ind] ])
+            r = pd.DataFrame(re)
+            r.to_csv('data/reg/train/train.csv')
+        f = pd.read_csv ('data/test.csv')
+        re = []
+        pce = f['PCE']
+        for ind,smile in enumerate ( f['SMILES']):
+            print(ind)
+            atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+            np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
+            re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
+            r = pd.DataFrame(re)
+            r.to_csv('data/reg/test/test.csv')
+        f = pd.read_csv ('data/val.csv')
+        re = []
+        pce = f['PCE']
+        for ind,smile in enumerate ( f['SMILES']):
+            print(ind)
+            atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+            np.save('data/reg/val/adj'+str(ind)+'.npy',np.array(adj))
+            re.append([atom,'data/reg/val/adj'+str(ind)+'.npy',pce[ind] ])
+            r = pd.DataFrame(re)
+            r.to_csv('data/reg/val/val.csv')
+if __name__== '__main__':
+    pretrainprocess()
+    process()

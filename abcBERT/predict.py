@@ -24,7 +24,7 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
 
-def main(seed):
+def main(filename):
     # tasks = ['caco2', 'logD', 'logS', 'PPB', 'tox']
     #os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     keras.backend.clear_session()
@@ -45,7 +45,7 @@ def main(seed):
     trained_epoch = 80
     task = 'data'
     print(task)
-    seed = seed
+    seed = 14
 
     num_layers = arch['num_layers']
     num_heads = arch['num_heads']
@@ -57,7 +57,8 @@ def main(seed):
     dropout_rate = 0.1
 
     tf.random.set_seed(seed=seed)
-    graph_dataset = Graph_Regression_test('data/reg/{}.csv', addH=addH)
+   # filename= 'val/val'
+    graph_dataset = Graph_Regression_test('data/{}.csv', filename, addH=addH)
     # graph_dataset = Graph_Regression_Dataset('data/reg/{}.csv', smiles_field='SMILES',
     #                                                         label_field='PCE',addH=addH)        
     test_dataset = graph_dataset.get_data()
@@ -121,10 +122,10 @@ def main(seed):
 
     test_r2 = r2_score(y_true, y_preds)
     test_mse = keras.metrics.mse(y_true.reshape(-1), y_preds.reshape(-1)).numpy() * (value_range**2)
-    print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
+    #print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
     prediction_test=np.vstack((y_true,y_preds))
 
-    return test_r2, prediction_test
+    return y_preds
 
 if __name__ == "__main__":
     result =[]
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
     for seed in [24]:
         print(seed)
-        r2 ,prediction_val= main(seed)
+        r2 ,prediction_val= main('reg/test/test')
         result.append(prediction_val)
         r2_list.append(r2)
     print(prediction_val)

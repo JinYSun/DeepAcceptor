@@ -31,6 +31,7 @@ from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Dense, Input, Flatten, Conv1D, MaxPooling1D, concatenate
 from tensorflow.keras import metrics, optimizers
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from sklearn.ensemble import GradientBoostingRegressor
 
 def split_smiles(smiles, kekuleSmiles=True):
     try:
@@ -180,7 +181,7 @@ if __name__ == "__main__":
     
     features = []
     for i, smi in enumerate(tqdm(smiles)):
-        xi = one_hot_coding(smi, words, max_len=600)
+        xi = one_hot_coding(smi, words, max_len=1000)
         if xi is not None:
             features.append(xi.todense())
     features = np.asarray(features)
@@ -212,7 +213,7 @@ if __name__ == "__main__":
     
     features = []
     for i, smi in enumerate(tqdm(smiles)):
-        xi = one_hot_coding(smi, words, max_len=600)
+        xi = one_hot_coding(smi, words, max_len=1000)
         if xi is not None:
             features.append(xi.todense())
     features = np.asarray(features)
@@ -222,7 +223,7 @@ if __name__ == "__main__":
     n_features=10
     
     model = RandomForestRegressor(n_estimators=100,  criterion='friedman_mse', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None)
-   
+    #model =  GradientBoostingRegressor()
     from tensorflow.keras import backend as K
     X_train = K.cast_to_floatx(X_train).reshape((np.size(X_train,0),np.size(X_train,1)*np.size(X_train,2)))
 
@@ -230,11 +231,11 @@ if __name__ == "__main__":
     
 #    X_train,Y_train = make_blobs(n_samples=300, n_features=n_features, centers=6)
     model.fit(X_train, Y_train)
-    import pickle
-    pickle.dump(model,open("model.dat","wb"))   # open("dtr.dat","wb")意思是打开叫"dtr.dat"的文件,操作方式是写入二进制数据
+  #  import pickle
+   # pickle.dump(model,open("model.dat","wb"))   # open("dtr.dat","wb")意思是打开叫"dtr.dat"的文件,操作方式是写入二进制数据
 
 # 加载模型 
-    loaded_model = pickle.load(open("dtr.dat","rb"))
+    #loaded_model = pickle.load(open("dtr.dat","rb"))
     
  #   model = load_model('C:/Users/sunjinyu/Desktop/FingerID Reference/drug-likeness/CNN/single_model.h5')
     Y_predict = model.predict(K.cast_to_floatx(X_test).reshape((np.size(X_test,0),np.size(X_test,1)*np.size(X_test,2))))
