@@ -66,8 +66,6 @@ Then, run the utils.py as follows.
     r.to_csv('data/reg/test/test.csv')
     print('Done!')
 
-------
-
 or use the command line as follows
 
 ```
@@ -75,11 +73,13 @@ cd abcBERT
 python utils.py
 ```
 
+------
+
 
 
 ## <u>Model training</u>
 
-1. #### Pretrain the model
+1. #### Pre-train the model
 
    ```
    import pretrain
@@ -94,7 +94,7 @@ python utils.py
 
    
 
-2. #### Finetune the model
+2. #### Fine-tune the model
 
        import regression
        from regression import *
@@ -103,11 +103,13 @@ python utils.py
        seed = 12
        r2,prediction_val,prediction_test= main(seed)
 
-------
-
 or use the command line as follows
 
 `python regression.py`
+
+------
+
+
 
 ## <u>Predicting PCE</u>
 
