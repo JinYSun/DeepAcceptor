@@ -1,4 +1,4 @@
-name: deepacceptors
+name: deepacceptor
 channels:
   - defaults
 dependencies:
