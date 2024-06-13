@@ -87,7 +87,10 @@ python utils.py
 
    ```
    cd abcBERT
+   #pre-process the data for pretraining
    python -c "import utils; utils.pretrainprocess()"
+   
+   #pretraining
    python pretrain.py
    ```
 
@@ -109,9 +112,12 @@ or use the command line as follows
 
 ```
     cd abcBERT
+    #pre-process the data for training/test/validation
     python -c "import utils; utils.processtrain()"
     python -c "import utils; utils.processtest()"
     python -c "import utils; utils.processtval()"
+    
+    # Fine-tuning the model
     python regression.py
 ```
 
@@ -140,7 +146,11 @@ or use the command line as follows
 
 ```
     cd abcBERT
+    
+    # pre-process the data
     python -c "import utils; utils.processtest()"
+    
+    # prediction on large-scale dataset
     python predict.py
 ```
 
@@ -148,7 +158,6 @@ or use the command line as follows
 
 ```
     import predictbysmiles
-
     from predictbysmiles import *
 
     prediction_val = main ('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')
@@ -158,6 +167,7 @@ or use the command line as follows
 
 ```
     cd abcBERT
+    # prediction without any pre-process
     python predictbysmiles.py  .main('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')
 ```
 
@@ -165,7 +175,9 @@ or use the command line as follows
 
 **The example codes for prediction is included in the [test.ipynb](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/test.ipynb)**
 
-**Demo**: It's a **toy data**  [example.ipynb]([DeepAcceptor/abcBERT/Demo/example.ipynb at master · JinYSun/DeepAcceptor (github.com)](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/Demo/example.ipynb)) for the whole process. It was used to test that the code works. All parameters were set **small** to show how the abcBERT worked.
+## <u>Demo</u>
+
+ It's a **toy data**  [example.ipynb]([DeepAcceptor/abcBERT/Demo/example.ipynb at master · JinYSun/DeepAcceptor (github.com)](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/Demo/example.ipynb)) for the whole process. It was used to test that the code works. All parameters were set **small** to show how the abcBERT worked.
 
 ------
 
