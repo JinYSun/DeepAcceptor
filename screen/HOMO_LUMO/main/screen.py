@@ -208,7 +208,7 @@ if __name__ == "__main__":
     layer_output=6
     
     batch_train=32
-    batch_test=32
+    batch_test=16
     lr=3e-4
     lr_decay=0.99
     decay_interval=10
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     lr, lr_decay = map(float, [lr, lr_decay])
 
     if torch.cuda.is_available():
-        device = torch.device('cuda')
+        device = torch.device('cpu')
         print('The code uses a GPU!')
     else:
         device = torch.device('cpu')

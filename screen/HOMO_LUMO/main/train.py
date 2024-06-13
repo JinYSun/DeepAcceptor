@@ -192,8 +192,8 @@ class Tester(object):
 if __name__ == "__main__":
 
     task='regression'  # target is a real value (e.g., energy eV).
-    dataset='lumo'
-    pretrain = False
+    dataset='pre'
+    pretrain = True
     radius=1
     dim=56
     layer_hidden=6
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     model = MolecularGraphNeuralNetwork(
             N_fingerprints, dim, layer_hidden, layer_output).to(device)
     if pretrain == True:
-        model.load_state_dict(torch.load("homo.h5"))
+        model.load_state_dict(torch.load("lumo.h5"))
     trainer = Trainer(model)
     tester = Tester(model)
     print('# of model parameters:',

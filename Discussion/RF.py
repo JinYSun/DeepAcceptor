@@ -162,9 +162,9 @@ def edit_dataset(drug,non_drug,task):
   #  dataset_dev = dataset_dev_drug+dataset_dev_no
     return dataset_train, dataset_test
 if __name__ == "__main__":
-    data_train= pd.read_csv(r"H:\library\NFA-BERT\abcBERT\data\train3.csv")
-    data_test=pd.read_csv(r"H:\library\NFA-BERT\abcBERT\data\test3.csv")
-    inchis = list(data_train['SMILES'])
+    data_train= pd.read_csv(r"../abcBERT/data/train.csv")
+    data_test=pd.read_csv(r"../abcBERT/data/test.csv")
+    inchis = list(data_train['smiles'])
     rts = list(data_train['PCE'])
     
     smiles, targets = [], []
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     
     
   
-    inchis = list(data_test['SMILES'])
+    inchis = list(data_test['smiles'])
     rts = list(data_test['PCE'])
     
     smiles, targets = [], []

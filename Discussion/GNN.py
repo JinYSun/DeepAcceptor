@@ -245,8 +245,8 @@ if __name__ == "__main__":
     device = torch.device('cpu')
     import datetime
     time1=str(datetime.datetime.now())[0:13]
-    dataset_train = pp.create_dataset('train3.txt',path,dataname)
-    dataset_test = pp.create_dataset('test3.txt',path,dataname)
+    dataset_train = pp.create_dataset('train.txt',path,dataname)
+    dataset_test = pp.create_dataset('test.txt',path,dataname)
    # dataset_train, dataset_dev = split_dataset(dataset_train, 0.9)  
     
     lr, lr_decay = map(float, [lr, lr_decay])
