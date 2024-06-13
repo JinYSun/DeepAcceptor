@@ -164,7 +164,7 @@ def edit_dataset(drug,non_drug,task):
 if __name__ == "__main__":
     data_train= pd.read_csv(r"../abcBERT/data/train.csv")
     data_test=pd.read_csv(r"../abcBERT/data/test.csv")
-    inchis = list(data_train['smiles'])
+    inchis = list(data_train['SMILES'])
     rts = list(data_train['PCE'])
     
     smiles, targets = [], []
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     
     
   
-    inchis = list(data_test['smiles'])
+    inchis = list(data_test['SMILES'])
     rts = list(data_test['PCE'])
     
     smiles, targets = [], []
