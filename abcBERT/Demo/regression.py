@@ -194,49 +194,4 @@ if __name__ == "__main__":
         r=pearsonr(data[0],data[1])[0]
         res=np.vstack((mae,r2,mse,r))
         re.append(res)
-        classes = ['A', 'B', 'C']
-        A=[]
-        B=[]
-        C=0
-        D=0
-        for a in data[0]:
-            if a <7:
-                a=1
-                A.append(a)
-                
-            elif a<13 :
-                a=2
-                A.append(a)
-            # elif a<9:
-            #     a=3
-            #     A.append(a)
-            elif a>12:
-                
-                a=3
-                A.append(a)
-        for a in data[1]:
-            if a <7:
-                a=1
-                B.append(a)
-            # elif a <6:
-            #     a=2
-            #     B.append(a)
-            elif a<13:
-                a=2
-                B.append(a)
-            elif a>9:
-                
-                a=3
-                B.append(a)
-        # 获取混淆矩阵
-        random_numbers = np.random.randint(6, size=50)  # 6个类别，随机生成50个样本
-        y_true = random_numbers.copy()  # 样本实际标签
-        random_numbers[:10] = np.random.randint(6, size=10)  # 将前10个样本的值进行随机更改
-        y_pred = random_numbers  # 样本预测标签
-        
-        A=np.array(A)
-        B=np.array(B)
-        cm = confusion_matrix(A, B)
-      #  plot_confusion_matrix(cm, 'confusion_matrix.png', title='confusion matrix')
-        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
