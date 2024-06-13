@@ -11,8 +11,8 @@ import pandas as pd
 from rdkit import rdBase, Chem
 from rdkit.Chem import AllChem, Draw, BRICS, Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
-data=pd.read_csv(r"high.csv",encoding='ISO-8859-1')
-data = (data.iloc[:,0])
+data=pd.read_csv(r"polystand.csv",encoding='ISO-8859-1')
+data = (data['SMILES'])
 
 mols_list=np.array([Chem.MolFromSmiles(mol) for mol in data if mol is not None])
 
