@@ -23,8 +23,8 @@ We recommend to use [conda](https://conda.io/docs/user-guide/install/download.ht
 **By using the *environment.yml* file, it will install all the required packages.**
 
 ```
-git clone https://github.com/jinysun/deepacceptor.git
-cd DeepAcceptor
+git clone --depth=1 https://github.com/jinysun/deepacceptor.git
+cd deepacceptor
 conda env create -f environment.yml
 conda activate deepacceptor
 ```
@@ -53,6 +53,7 @@ abcBERT is a model for predicting PCE based on molecular graph,  so we need to c
 First, put the test file in the file data/reg/.
 
 Then, run the utils.py as follows.
+
 
     import pandas as pd 
     import utils 
@@ -168,7 +169,7 @@ or use the command line as follows
 ```
     cd abcBERT
     # prediction without any pre-process
-    python predictbysmiles.py  .main('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')
+    python -c "import predictbysmiles; predictbysmiles.main('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')"
 ```
 
 
