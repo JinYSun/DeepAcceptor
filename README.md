@@ -55,11 +55,25 @@ First, put the test file in the file data/reg/.
 Then, run the utils.py as follows.
 
     import pandas as pd 
+<<<<<<< HEAD
     import utils 
     utils.pretrainprocess()
     utils.processtrain()
     utils.processtest()
     utils.processtval()
+=======
+    f = pd.read_csv (r"data/reg/test.csv")
+    re = []
+    pce = f['PCE']
+    for ind,smile in enumerate ( f.iloc[:,0]):
+        
+        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
+        np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
+        re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
+    r = pd.DataFrame(re)
+    r.to_csv('data/reg/test/test.csv')
+    print('Done!')
+>>>>>>> origin/master
 
 or use the command line as follows
 
@@ -75,8 +89,11 @@ python utils.py
 ## <u>Model training</u>
 
 1. #### Pre-train the model
+<<<<<<< HEAD
 
    The pre-training process can be completed after pre-processing the data.
+=======
+>>>>>>> origin/master
 
    ```
    import pretrain
@@ -115,13 +132,20 @@ python -c "import utils; utils.processtval()"
 python regression.py
 ```
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> origin/master
 ------
 
 
 
+<<<<<<< HEAD
 ## <u>Predicting PCE of large-scale database</u>
+=======
+## <u>Predicting PCE</u>
+>>>>>>> origin/master
 
 The PCE prediction is obtained by feeding the the processed molecules into the already trained abcBERT model with [predict.py](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/predict.py) 
 
