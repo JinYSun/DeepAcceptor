@@ -40,6 +40,7 @@ conda activate deepacceptor
 | -- [dataset](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/dataset.py): contain the code to building dataset for pre-traing and fine-tuning |
 | -- [utils](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/utils.py): contain the code to convert molecules to graphs |
 | --[predict](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/predict.py): contain the code for predict the properties |
+| --[Demo](https://github.com/JinYSun/DeepAcceptor/tree/master/abcBERT/Demo):  contain the code to show how the model works |
 
 ------
 
@@ -54,17 +55,11 @@ First, put the test file in the file data/reg/.
 Then, run the utils.py as follows.
 
     import pandas as pd 
-    f = pd.read_csv (r"data/reg/test.csv")
-    re = []
-    pce = f['PCE']
-    for ind,smile in enumerate ( f.iloc[:,0]):
-        
-        atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
-        np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
-        re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
-    r = pd.DataFrame(re)
-    r.to_csv('data/reg/test/test.csv')
-    print('Done!')
+    import utils 
+    utils.pretrainprocess()
+    utils.processtrain()
+    utils.processtest()
+    utils.processtval()
 
 or use the command line as follows
 
@@ -81,6 +76,8 @@ python utils.py
 
 1. #### Pre-train the model
 
+   The pre-training process can be completed after pre-processing the data.
+
    ```
    import pretrain
    pretrain.main()
@@ -89,6 +86,8 @@ python utils.py
    or use the command line as follows
 
    ```
+   cd abcBERT
+   python -c "import utils; utils.pretrainprocess()"
    python pretrain.py
    ```
 
@@ -96,6 +95,9 @@ python utils.py
 
 2. #### Fine-tune the model
 
+   The training process can be completed after pre-processing the training/test/validation set and pre-training the model.
+   
+       
        import regression
        from regression import *
        result =[]
@@ -105,28 +107,65 @@ python utils.py
 
 or use the command line as follows
 
-`python regression.py`
+```
+cd abcBERT
+python -c "import utils; utils.processtrain()"
+python -c "import utils; utils.processtest()"
+python -c "import utils; utils.processtval()"
+python regression.py
+```
+
+
 
 ------
 
 
 
-## <u>Predicting PCE</u>
+## <u>Predicting PCE of large-scale database</u>
 
 The PCE prediction is obtained by feeding the the processed molecules into the already trained abcBERT model with [predict.py](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/predict.py) 
 
+    #Pre-process the test data
+    import utils
+    from utils import *
+    utils.processtest()
+    
+    # Prediction on large-scale dataset
     import predict
     from predict import *
     np.set_printoptions(threshold=sys.maxsize)
-    prediction_val= main('reg/test/test')
+    prediction_val= main()
 
 or use the command line as follows
 
 ```
+cd abcBERT
+python -c "import utils; utils.processtest()"
 python predict.py
 ```
 
-**The example codes for usage is included in the [test.ipynb](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/test.ipynb)**
+## <u>Predicting PCE  of single molecule</u>
+
+```
+import predictbysmiles
+
+from predictbysmiles import *
+
+prediction_val = main ('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')
+```
+
+or use the command line as follows
+
+```
+cd abcBERT
+python predictbysmiles.py  .main('CCCCCCCCC1=CC=C(C2(C3=CC=C(CCCCCCCC)C=C3)C3=CC4=C(C=C3C3=C2C2=C(C=C(C5=CC=C(/C=C6/C(=O)C7=C(C=CC=C7)C6=C(C#N)C#N)C6=NSN=C56)S2)S3)C(C2=CC=C(CCCCCCCC)C=C2)(C2=CC=C(CCCCCCCC)C=C2)C2=C4SC3=C2SC(C2=CC=C(/C=C4\C(=O)C5=C(C=CC=C5)C4=C(C#N)C#N)C4=NSN=C24)=C3)C=C1')
+```
+
+
+
+**The example codes for prediction is included in the [test.ipynb](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/test.ipynb)**
+
+**Demo**: It's a **toy data**  [example.ipynb]([DeepAcceptor/abcBERT/Demo/example.ipynb at master · JinYSun/DeepAcceptor (github.com)](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/Demo/example.ipynb)) for the whole process. It was used to test that the code works. All parameters were set **small** to show how the abcBERT worked.
 
 ------
 

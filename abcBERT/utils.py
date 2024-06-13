@@ -667,8 +667,10 @@ def pretrainprocess(filename = 'data/chem.txt'):
             re.append([atom,'data/adj/'+str(ind)+'.npy'])
             r = pd.DataFrame(re)
             r.to_csv('data/adj/re.csv')
-def process():
-        f = pd.read_csv ('data/train.csv')
+            
+            
+def processtrain(file = 'data/train.csv'):
+        f = pd.read_csv (file)
         re = []
         pce = f['PCE']
         for ind,smile in enumerate ( f['SMILES']):
@@ -678,7 +680,10 @@ def process():
             re.append([atom,'data/reg/train/adj'+str(ind)+'.npy',pce[ind] ])
             r = pd.DataFrame(re)
             r.to_csv('data/reg/train/train.csv')
-        f = pd.read_csv ('data/test.csv')
+
+
+def processtest(file = 'data/test.csv'):
+        f = pd.read_csv (file)
         re = []
         pce = f['PCE']
         for ind,smile in enumerate ( f['SMILES']):
@@ -686,9 +691,11 @@ def process():
             atom,adj = mol_to_geognn_graph_data_MMFF3d(smile)
             np.save('data/reg/test/adj'+str(ind)+'.npy',np.array(adj))
             re.append([atom,'data/reg/test/adj'+str(ind)+'.npy',pce[ind] ])
-            r = pd.DataFrame(re)
-            r.to_csv('data/reg/test/test.csv')
-        f = pd.read_csv ('data/val.csv')
+        r = pd.DataFrame(re)
+        r.to_csv('data/reg/test/test.csv')
+            
+def processtval(file = 'data/val.csv'):
+        f = pd.read_csv (file)
         re = []
         pce = f['PCE']
         for ind,smile in enumerate ( f['SMILES']):
@@ -698,6 +705,13 @@ def process():
             re.append([atom,'data/reg/val/adj'+str(ind)+'.npy',pce[ind] ])
             r = pd.DataFrame(re)
             r.to_csv('data/reg/val/val.csv')
+            
+            
+            
+            
 if __name__== '__main__':
     pretrainprocess()
-    process()
+    processtrain()
+    processtest()
+    processtval()
+    

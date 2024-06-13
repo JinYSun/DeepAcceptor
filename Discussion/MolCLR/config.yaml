@@ -12,7 +12,7 @@ init_lr: 0.0005                         # initial learning rate for Adam
 weight_decay: 1e-5                      # weight decay for Adam
 gpu: cuda:0                             # training GPU 
 
-model_type: gin                         # GNN backbone (i.e., gin/gcn)
+model_type: gcn                         # GNN backbone (i.e., gin/gcn)
 model: 
   num_layer: 6                          # number of graph conv layers
   

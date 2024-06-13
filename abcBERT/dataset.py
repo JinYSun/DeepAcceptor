@@ -26,7 +26,7 @@ class Graph_Bert_Dataset(object):
         data = self.df
         
         train_idx = []
-        idx = data.sample(frac=0.9).index
+        idx = data.sample(frac=0.5).index
       
         train_idx.extend(idx)
 
@@ -34,11 +34,11 @@ class Graph_Bert_Dataset(object):
         data2 = data[~data.index.isin(train_idx)]
        
         self.dataset1 = tf.data.Dataset.from_tensor_slices((data1[self.smiles_field],data1[self.adj]))
-        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).padded_batch(64, padded_shapes=(
+        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).padded_batch(256, padded_shapes=(
             tf.TensorShape([None]),tf.TensorShape([None,None]), tf.TensorShape([None]) ,tf.TensorShape([None]))).prefetch(50)
          
         self.dataset2 = tf.data.Dataset.from_tensor_slices((data2[self.smiles_field],data2[self.adj]))
-        self.dataset2 = self.dataset2.map(self.tf_numerical_smiles).padded_batch(64, padded_shapes=(
+        self.dataset2 = self.dataset2.map(self.tf_numerical_smiles).padded_batch(512, padded_shapes=(
             tf.TensorShape([None]), tf.TensorShape([None, None]), tf.TensorShape([None]),
             tf.TensorShape([None]))).prefetch(50)
         return self.dataset1, self.dataset2
@@ -149,75 +149,9 @@ class Graph_Regression_Dataset_test(object):
         adjoin_matrix.set_shape([None,None])
         y.set_shape([None])
         return x, adjoin_matrix , y
-    
-class predict_smiles(object):
-    def __init__(self,smiles ,normalize=False,max_len=1000,addH=True):
-     
-        self.smiles_field = smiles
-        
-        self.label_field = float(0)
-        self.vocab = str2num
-        self.devocab = num2str
-        #self.df = self.df[self.df[smiles_field].str.len()<=max_len]
-        self.addH =  addH
-        if normalize:
-            self.max = self.df[self.label_field].max()
-            self.min = self.df[self.label_field].min()
-            self.df[self.label_field] = (self.df[self.label_field]-self.min)/(self.max-self.min)-0.5
-            self.value_range = self.max-self.min
-    def numerical_smiles(self, atoms_list,adj,label):
-                
-        atom = np.array(atoms_list)            
-        atoms_list = []
-        for i in atom:
-            if i not in [' ']:
-                atoms_list.append(str(i,encoding='utf-8'))
-        label = np.array(label)
-       
-        adj = np.array(adj)
 
-        adjoin_matrix =adj  
-       
-        atoms_list = ['<global>'] + atoms_list
-        nums_list =  [str2num.get(i,str2num['<unk>']) for i in atoms_list]
-        #temp = np.ones((len(nums_list),len(nums_list)))
-        #temp[1:, 1:] = adjoin_matrix
-        #adjoin_matrix = (1-temp)*(-1e9)
-
-        temp = np.ones((len(nums_list),len(nums_list)))
-        temp[1:,1:] = adjoin_matrix      
-        temp[np.where(temp  == 0)]=-1e9
-        
-  
-        adjoin_matrix = temp 
-        x = np.array(nums_list).astype('int64')
-        y = np.array([label]).astype('float32')
-        return x, adjoin_matrix,y
-
-    def get_data(self):
-        atom, adj = smiles2adjoin( self.smiles_field)        
-        atom = np.array(atom)
-        atoms_list = []
-        for i in atom:
-            if i not in [' ']:
-                atoms_list.append(i)       
-        adj = np.array(adj)
-        adjoin_matrix = adj   
-        self.dataset1 = tf.data.Dataset.from_tensors((atoms_list, adjoin_matrix,  self.label_field))
-        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).cache().padded_batch(1, padded_shapes=(
-            tf.TensorShape([None]), tf.TensorShape([None,None]),tf.TensorShape([1])))   
-
-        return self.dataset1
-
-    def tf_numerical_smiles(self, atoms_list,adj,label):
-        x,adjoin_matrix,y = tf.py_function(self.numerical_smiles, (atoms_list,adj,label), [tf.int64, tf.float32 ,tf.float32])
-        x.set_shape([None])
-        adjoin_matrix.set_shape([None,None])
-        y.set_shape([None])
-        return x, adjoin_matrix , y 
-    
 class Graph_Regression_test(object):
-    def __init__(self,path, filename, smiles_field=['0'],adj = ['1'], label_field=['2'],normalize=False,max_len=1000,addH=True):
+    def __init__(self,path,smiles_field=['0'],adj = ['1'], label_field=['2'],normalize=False,max_len=1000,addH=True):
         if path.endswith('.txt') or path.endswith('.tsv'):
            # self.df = pd.read_csv(path.format('train3'),sep='\t')
             #self.dt = pd.read_csv(path.format('test3'),sep='\t')
@@ -225,7 +159,7 @@ class Graph_Regression_test(object):
         else:
             #self.df = pd.read_csv(path.format('train/train'))
            #self.dt = pd.read_csv(path.format('test/test'))
-            self.dv = pd.read_csv(path.format(filename))
+            self.dv = pd.read_csv(path.format('test/test'))
         self.smiles_field = smiles_field
         self.adj = adj
         self.label_field = label_field
@@ -254,6 +188,9 @@ class Graph_Regression_test(object):
         self.dataset1 = tf.data.Dataset.from_tensor_slices((train_data[self.smiles_field],train_data[self.adj], train_data[self.label_field]))
         self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).cache().padded_batch(64, padded_shapes=(
             tf.TensorShape([None]), tf.TensorShape([None,None]),tf.TensorShape([1]))).prefetch(100)
+
+      
+
         return self.dataset1
 
     def numerical_smiles(self, atom,adj,label):
@@ -270,10 +207,7 @@ class Graph_Regression_test(object):
         atoms_list = []
         for i in atom:
             if i not in [' ']:
-                try:
-                    atoms_list.append(str(i,encoding='utf-8'))
-                except:
-                    atoms_list.append(str(i))
+                atoms_list.append(i)
         label = np.array(label)[0]
        
         adj = np.array(adj)[0].decode()
@@ -314,7 +248,7 @@ class Graph_Regression(object):
         else:
             self.df = pd.read_csv(path.format('train/train'))
             self.dt = pd.read_csv(path.format('test/test'))
-            #self.dv = pd.read_csv(path.format('val/val'))
+            #self.dv = pd.read_csv(path.format('val3'))
         self.smiles_field = smiles_field
         self.adj = adj
         self.label_field = label_field
@@ -464,6 +398,72 @@ class Inference_Dataset(object):
         weight.set_shape([None])
         return x, adjoin_matrix,smiles,atom_list
 
+class predict_smiles(object):
+    def __init__(self,smiles ,normalize=False,max_len=1000,addH=True):
+     
+        self.smiles_field = smiles
+        
+        self.label_field = float(0)
+        self.vocab = str2num
+        self.devocab = num2str
+        #self.df = self.df[self.df[smiles_field].str.len()<=max_len]
+        self.addH =  addH
+        if normalize:
+            self.max = self.df[self.label_field].max()
+            self.min = self.df[self.label_field].min()
+            self.df[self.label_field] = (self.df[self.label_field]-self.min)/(self.max-self.min)-0.5
+            self.value_range = self.max-self.min
+    def numerical_smiles(self, atoms_list,adj,label):
+                
+        atom = np.array(atoms_list)            
+        atoms_list = []
+        for i in atom:
+            if i not in [' ']:
+                atoms_list.append(str(i,encoding='utf-8'))
+        label = np.array(label)
+       
+        adj = np.array(adj)
+
+        adjoin_matrix =adj  
+       
+        atoms_list = ['<global>'] + atoms_list
+        nums_list =  [str2num.get(i,str2num['<unk>']) for i in atoms_list]
+        #temp = np.ones((len(nums_list),len(nums_list)))
+        #temp[1:, 1:] = adjoin_matrix
+        #adjoin_matrix = (1-temp)*(-1e9)
+
+        temp = np.ones((len(nums_list),len(nums_list)))
+        temp[1:,1:] = adjoin_matrix      
+        temp[np.where(temp  == 0)]=-1e9
+        
+  
+        adjoin_matrix = temp 
+        x = np.array(nums_list).astype('int64')
+        y = np.array([label]).astype('float32')
+        return x, adjoin_matrix,y
+
+    def get_data(self):
+        atom, adj = smiles2adjoin( self.smiles_field)        
+        atom = np.array(atom)
+        atoms_list = []
+        for i in atom:
+            if i not in [' ']:
+                atoms_list.append(i)       
+        adj = np.array(adj)
+        adjoin_matrix = adj   
+        self.dataset1 = tf.data.Dataset.from_tensors((atoms_list, adjoin_matrix,  self.label_field))
+        self.dataset1 = self.dataset1.map(self.tf_numerical_smiles).cache().padded_batch(1, padded_shapes=(
+            tf.TensorShape([None]), tf.TensorShape([None,None]),tf.TensorShape([1])))   
+
+        return self.dataset1
+
+    def tf_numerical_smiles(self, atoms_list,adj,label):
+        x,adjoin_matrix,y = tf.py_function(self.numerical_smiles, (atoms_list,adj,label), [tf.int64, tf.float32 ,tf.float32])
+        x.set_shape([None])
+        adjoin_matrix.set_shape([None,None])
+        y.set_shape([None])
+        return x, adjoin_matrix , y 
+    
 class Inference_Dataset(object):
     def __init__(self,sml_list,max_len=1000,addH=True):
         self.vocab = str2num

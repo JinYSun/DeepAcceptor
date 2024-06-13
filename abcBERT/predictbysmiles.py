@@ -69,7 +69,7 @@ def main(smiles):
     model = PredictModel(num_layers=num_layers, d_model=d_model, dff=dff, num_heads=num_heads, vocab_size=vocab_size,
                          dense_dropout=0.2)
     preds = model(x, mask=mask, adjoin_matrix=adjoin_matrix, training=False)
-    model.load_weights('regression_weights/{}.h5'.format('15data'))
+    model.load_weights('regression_weights/{}.h5'.format('data'))
 
     if pretraining:
         temp = BertModel(num_layers=num_layers, d_model=d_model, dff=dff, num_heads=num_heads, vocab_size=vocab_size)
@@ -116,7 +116,7 @@ def main(smiles):
     y_true = np.concatenate(y_true, axis=0).reshape(-1)
    
     y_preds = np.concatenate(y_preds, axis=0).reshape(-1)
- 
+    print (y_preds)
     return y_preds
 
 if __name__ == "__main__":

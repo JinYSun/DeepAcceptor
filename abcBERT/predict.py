@@ -15,7 +15,11 @@ import numpy as np
 import sys
 from dataset import Graph_Regression_test #Graph_Regression_Dataset,
 from sklearn.metrics import r2_score,roc_auc_score
-
+from sklearn.metrics import mean_absolute_error,r2_score,mean_squared_error
+from scipy.stats import pearsonr
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 from model import  PredictModel,BertModel
 import os
@@ -24,7 +28,7 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
 
-def main(filename):
+def main(seed = 24):
     # tasks = ['caco2', 'logD', 'logS', 'PPB', 'tox']
     #os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     keras.backend.clear_session()
@@ -45,7 +49,7 @@ def main(filename):
     trained_epoch = 80
     task = 'data'
     print(task)
-    seed = 14
+    seed = seed
 
     num_layers = arch['num_layers']
     num_heads = arch['num_heads']
@@ -57,8 +61,7 @@ def main(filename):
     dropout_rate = 0.1
 
     tf.random.set_seed(seed=seed)
-   # filename= 'val/val'
-    graph_dataset = Graph_Regression_test('data/{}.csv', filename, addH=addH)
+    graph_dataset = Graph_Regression_test('data/reg/{}.csv', addH=addH)
     # graph_dataset = Graph_Regression_Dataset('data/reg/{}.csv', smiles_field='SMILES',
     #                                                         label_field='PCE',addH=addH)        
     test_dataset = graph_dataset.get_data()
@@ -120,28 +123,23 @@ def main(filename):
    
     y_preds = np.concatenate(y_preds, axis=0).reshape(-1)
 
-    test_r2 = r2_score(y_true, y_preds)
+   
     test_mse = keras.metrics.mse(y_true.reshape(-1), y_preds.reshape(-1)).numpy() * (value_range**2)
-    #print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
-    prediction_test=np.vstack((y_true,y_preds))
-
-    return y_preds
+   # print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
+    prediction_test=np.vstack((y_preds))
+    pre = pd.DataFrame(prediction_test)
+    pre.to_csv('results.csv')
+    print('finish!  Results can be find in abcBERT/results.csv')
+    
+    return  prediction_test
 
 if __name__ == "__main__":
-    result =[]
-    r2_list = []
+ 
     np.set_printoptions(threshold=sys.maxsize)
     for seed in [24]:
         print(seed)
-        r2 ,prediction_val= main('reg/test/test')
-        result.append(prediction_val)
-        r2_list.append(r2)
+        prediction_val= main(seed)
+        
     print(prediction_val)
-    from sklearn.metrics import mean_absolute_error,r2_score,mean_squared_error
-    from scipy.stats import pearsonr
-    from sklearn.metrics import confusion_matrix
-    import matplotlib.pyplot as plt
-    import numpy as np
-    pre = pd.DataFrame(prediction_val).T
-    pre.to_csv('results.csv')
+ 
  

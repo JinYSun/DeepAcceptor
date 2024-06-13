@@ -15,7 +15,11 @@ import numpy as np
 import sys
 from dataset import Graph_Regression_test #Graph_Regression_Dataset,
 from sklearn.metrics import r2_score,roc_auc_score
-
+from sklearn.metrics import mean_absolute_error,r2_score,mean_squared_error
+from scipy.stats import pearsonr
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 from model import  PredictModel,BertModel
 import os
@@ -24,7 +28,7 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
 
-def main(seed):
+def main(seed=24):
     # tasks = ['caco2', 'logD', 'logS', 'PPB', 'tox']
     #os.environ['CUDA_VISIBLE_DEVICES'] = "1"
     keras.backend.clear_session()
@@ -122,25 +126,20 @@ def main(seed):
    
     test_mse = keras.metrics.mse(y_true.reshape(-1), y_preds.reshape(-1)).numpy() * (value_range**2)
    # print('test r2:{:.4f}'.format(test_r2), 'test mse:{:.4f}'.format(test_mse))
-    prediction_test=np.vstack((y_true,y_preds))
-    print('finish!')
+    prediction_test=np.vstack((y_preds))
+    pre = pd.DataFrame(prediction_test)
+    pre.to_csv('results.csv')
+    print('finish!  Results can be found in abcBERT/Demo/results.csv')
+    
     return  prediction_test
 
 if __name__ == "__main__":
-    result =[]
-    r2_list = []
+ 
     np.set_printoptions(threshold=sys.maxsize)
     for seed in [24]:
         print(seed)
-        r2 ,prediction_val= main(seed)
-        result.append(prediction_val)
-        r2_list.append(r2)
+        prediction_val= main(seed)
+        
     print(prediction_val)
-    from sklearn.metrics import mean_absolute_error,r2_score,mean_squared_error
-    from scipy.stats import pearsonr
-    from sklearn.metrics import confusion_matrix
-    import matplotlib.pyplot as plt
-    import numpy as np
-    pre = pd.DataFrame(prediction_val).T
-    pre.to_csv('results.csv')
+ 
  
