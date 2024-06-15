@@ -203,7 +203,7 @@ if __name__ == "__main__":
     result =[]
     r2_list = []
     for seed in [24]:
-        print(seed)
+ 
         r2 ,prediction_val,prediction_test= main(seed)
         result.append(prediction_val)
  
