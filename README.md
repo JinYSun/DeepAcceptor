@@ -178,7 +178,7 @@ or use the command line as follows
 
 ## <u>Demo</u>
 
- The [example.ipynb]([DeepAcceptor/abcBERT/Demo/example.ipynb at master · JinYSun/DeepAcceptor (github.com)](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/Demo/example.ipynb)) was used to show the whole process of abcBERT. It was used to test that the code works. All parameters were set **small** (such as epochs, dataset size) to show how the abcBERT worked.
+ The [example.ipynb](https://github.com/JinYSun/DeepAcceptor/blob/master/abcBERT/Demo/example.ipynb) was used to show the whole process of abcBERT. It was used to test that the code works. All parameters were set **small** (such as epochs, dataset size) to show how the abcBERT worked.
 
 ------
 
