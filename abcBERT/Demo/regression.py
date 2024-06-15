@@ -38,7 +38,7 @@ def main(seed):
     pretraining_str = 'pretraining' if pretraining else ''
 
     trained_epoch = 2
-    task = 'data'
+    task = 'demo'
     print(task)
     seed = seed
 
@@ -179,19 +179,5 @@ if __name__ == "__main__":
         result.append(prediction_val)
         r2_list.append(r2)
     print(r2_list)
-    from sklearn.metrics import median_absolute_error,r2_score,mean_squared_error
-    from scipy.stats import pearsonr
-    from sklearn.metrics import confusion_matrix
-    import matplotlib.pyplot as plt
-    import numpy as np
-    re = []
-    for i in range (len(result)):
-        data = result[i]
-        mae = median_absolute_error(data[0],data[1])
-        r2=r2_score(data[0],data[1])
-        mse = mean_squared_error(data[0],data[1])
-        
-        r=pearsonr(data[0],data[1])[0]
-        res=np.vstack((mae,r2,mse,r))
-        re.append(res)
+
 
