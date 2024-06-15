@@ -129,7 +129,7 @@ def main(seed = 24):
     prediction_test=np.vstack((y_preds))
     pre = pd.DataFrame(prediction_test)
     pre.to_csv('results.csv')
-    print('finish!  Results can be find in abcBERT/results.csv')
+    print('finish!  Results can be found in abcBERT/results.csv')
     
     return  prediction_test
 
