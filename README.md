@@ -216,6 +216,10 @@ or use the command line as follows
 
 The [Discussion](https://github.com/JinYSun/Deepacceptor/tree/main/discussion) folder contains the scripts for evaluating the PCE prediction performance.  We compared sevaral common methods widely used in molecular property prediction, such as [MolCLR](https://github.com/JinYSun/DeepAcceptor/blob/main/discussion/MolCLR.py) [GNN](https://github.com/JinYSun/DeepAcceptor/blob/main/discussion/GNN.py),[RF](https://github.com/JinYSun/DeepAcceptor/blob/main/discussion/RF.py), [ANN](https://github.com/JinYSun/Deepacceptor/blob/main/discussion/ANN.py),[QDF](https://github.com/JinYSun/DeepAcceptor/blob/main/discussion/QDF.py).
 
+## <u>Cite</u>
+
+Sun, J., Li, D., Zou, J. *et al.* Accelerating the discovery of acceptor materials for organic solar cells by deep learning. *npj Comput Mater* **10**, 181 (2024). https://doi.org/10.1038/s41524-024-01367-7
+
 ## <u>Contact</u>
 
 Jinyu Sun. E-mail: [jinyusun@csu.edu.cn](mailto:jinyusun@csu.edu.cn)
