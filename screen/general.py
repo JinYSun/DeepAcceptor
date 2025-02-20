@@ -19,7 +19,7 @@ mols_list=np.array([Chem.MolFromSmiles(mol) for mol in data if mol is not None])
 fragment_set = set()
 for mol in mols_list:
     try:
-        fragment = BRICS.BRICSDecompose(mol, allNodes=None, minFragmentSize=1, onlyUseReactions=None, silent=True, keepNonLeafNodes=True, singlePass=False, returnMols=False)#chai
+        fragment = BRICS.BRICSDecompose(mol, allNodes=None, minFragmentSize=5, onlyUseReactions=None, silent=True, keepNonLeafNodes=True, singlePass=False, returnMols=False)#chai
         fragment_set = fragment_set | fragment
     except:
         continue
@@ -33,12 +33,12 @@ frag_2dummy1 = np.array([Chem.MolFromSmiles(smiles) for smiles in frag_2dummy_s]
 descriptor_calc = MoleculeDescriptors.MolecularDescriptorCalculator(['MolWt'])
 MolWt_list1 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_1dummy1])
 frag_1dummy = frag_1dummy1[np.where((MolWt_list1<=200 ) & ( MolWt_list1>=50) )]
-frag_2dummy = frag_1dummy1[np.where((MolWt_list1>=300) & (MolWt_list1<=800 ))]
+ 
 
 descriptor_calc = MoleculeDescriptors.MolecularDescriptorCalculator(['MolWt'])
 MolWt_list2 = np.array([descriptor_calc.CalcDescriptors(mol)[0] for mol in frag_2dummy1])
-frag_3dummy = frag_2dummy1[np.where((MolWt_list2<=200 ) & ( MolWt_list2>=50) )]
-frag_4dummy = frag_2dummy1[np.where((MolWt_list2>=500) & (MolWt_list2<=800 ))]
+ 
+frag_4dummy = frag_2dummy1[np.where((MolWt_list2>=400) & (MolWt_list2<=800 ))]
 
 print('number of fragment:',len(frag_1dummy))
 #>>> number of fragment: 333
@@ -198,19 +198,16 @@ smiles= []
 
           
 for i in range (len(frag_4dummy)) :
-    fragment4 = frag_4dummy[i]
-    for j in range(len (frag_3dummy)):
-        fragment3 = frag_3dummy[j]
+        fragment4 = frag_4dummy[i]
+
         for k in range (len(frag_1dummy)):
             fragment1 = frag_1dummy[k]
-            for l in range(len(frag_2dummy)):
-                    fragment2 = frag_2dummy[l]
-                    mol = structure_generator(fragment4,fragment1 )
-                    
-                    mol1 = structure_generator(fragment3, mol)
-                    mol = structure_generator(fragment2,mol1)
-                    smile = Chem.MolToSmiles(mol)
-                    smiles.append(smile)
+            mol = structure_generator(fragment4,fragment1 )
+            mol1 = structure_generator(fragment4, mol)
+            smile = Chem.MolToSmiles(mol)
+            smiles.append(smile)
+# The code has been changed from T-S-C-S-T to T-C-T.
+
 dic={"SMILES":smiles}
 DataFrame(dic).to_csv(r"brics.csv")
 
